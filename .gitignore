@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.log
+
+# Virtual environments
+venv/
+.env
+.env.*
+.venv/
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# Data and artifacts
+data/raw/
+data/processed/
+data/train/
+data/val/
+data/test/
+data/live_eval/
+
+artifacts/logs/
+artifacts/eval/
+
+# Model weights (do not commit)
+models/base_model/
+models/lora_adapter/
+
+# Vector stores
+rag_index/
+
+# Cache directories
+.cache/
+huggingface/
+hf_cache/
+transformers_cache/
+torch_cache/
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+
+# Frontend output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS-specific
+.DS_Store
+Thumbs.db

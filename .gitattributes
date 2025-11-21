@@ -1,1 +1,43 @@
-<paste contents>
+# Normalize all text files 
+* text=auto
+
+# common text files
+*.py  text
+*.md  text
+*.txt text
+*.toml text
+*.json text
+*.yaml text
+*.yml text
+*.sh  text eol=lf
+*.env text
+
+# Notebooks 
+*.ipynb text
+
+# binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.svg  binary
+*.ico  binary
+
+*.pdf  binary
+*.zip  binary
+*.tar  binary
+*.tar.gz binary
+
+# Model / embedding / vector store artifacts
+*.bin          binary
+*.safetensors  binary
+*.pt           binary
+*.onnx         binary
+*.faiss        binary
+
+
+# Frontend build outputs 
+frontend/dist/* linguist-generated
+
+# Node vendor deps
+frontend/node_modules/* linguist-vendored

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from ai_tutor.config import Config
@@ -15,6 +16,16 @@ from ai_tutor.models.inference import generate_answer
 from ai_tutor.rag.retriever import retrieve_context
 
 app = FastAPI(title="AI Tutor LangGraph API")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 class ChatRequest(BaseModel):

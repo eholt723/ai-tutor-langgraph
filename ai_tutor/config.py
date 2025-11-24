@@ -23,7 +23,7 @@ class ConfigClass:
     rag_index_dir: Path = project_root / "rag_index"
 
     # Model identifiers / paths
-    base_model_id: str = os.getenv("BASE_MODEL_ID", "gpt2")
+    base_model_id: str = os.getenv("BASE_MODEL_ID", "gpt2-medium")
     base_model_path: Path = Path(os.getenv("BASE_MODEL_PATH", str(models_dir / "base_model")))
     lora_adapter_path: Path = Path(os.getenv("LORA_ADAPTER_PATH", str(models_dir / "lora_adapter")))
 

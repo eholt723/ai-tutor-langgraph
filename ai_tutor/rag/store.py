@@ -23,12 +23,20 @@ class VectorStore:
     titles: List[str]
 
 
-def _get_embedder(model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> SentenceTransformer:
+def _get_embedder(model_name: str | None = None) -> SentenceTransformer:
+    """
+    Create a SentenceTransformer embedder.
+
+    If no model_name is given, fall back to the embedding model defined in Config.
+    """
+    if model_name is None:
+        model_name = Config.embedding_model_id
     return SentenceTransformer(model_name)
 
 
 def build_vector_store(docs: List[ReferenceDoc]) -> VectorStore:
-    model_name = "sentence-transformers/all-MiniLM-L6-v2"
+    # Use the embedding model defined in Config
+    model_name = Config.embedding_model_id
     embedder = _get_embedder(model_name)
 
     texts = [doc.content for doc in docs]
@@ -47,7 +55,6 @@ def build_vector_store(docs: List[ReferenceDoc]) -> VectorStore:
 
 
 def save_vector_store(docs: List[ReferenceDoc], rebuild: bool = False) -> VectorStore:
-
     index_dir: Path = Config.rag_index_path
     index_dir.mkdir(parents=True, exist_ok=True)
     index_file = index_dir / "vector_store.pkl"
@@ -68,7 +75,9 @@ def load_vector_store() -> VectorStore:
     index_file = index_dir / "vector_store.pkl"
 
     if not index_file.exists():
-        raise FileNotFoundError(f"Vector store not found at {index_file}. Run build_rag_index.py first.")
+        raise FileNotFoundError(
+            f"Vector store not found at {index_file}. Run build_rag_index.py first."
+        )
 
     with open(index_file, "rb") as f:
         vs: VectorStore = pickle.load(f)

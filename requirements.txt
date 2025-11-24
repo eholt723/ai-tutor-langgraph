@@ -6,6 +6,7 @@ torch
 # LoRA / QLoRA
 bitsandbytes
 peft
+trl
 
 # Embeddings / RAG
 sentence-transformers

@@ -10,6 +10,9 @@ This package contains:
 - LangGraph workflow and nodes.
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 __all__ = [
     "config",
 ]

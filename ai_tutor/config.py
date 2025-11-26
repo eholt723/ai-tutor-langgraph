@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -23,12 +22,27 @@ class ConfigClass:
     rag_index_dir: Path = project_root / "rag_index"
 
     # Model identifiers / paths
+    # Default generator is GPT-2 Medium for the CEIS150 programming tutor.
     base_model_id: str = os.getenv("BASE_MODEL_ID", "gpt2-medium")
-    base_model_path: Path = Path(os.getenv("BASE_MODEL_PATH", str(models_dir / "base_model")))
-    lora_adapter_path: Path = Path(os.getenv("LORA_ADAPTER_PATH", str(models_dir / "lora_adapter")))
+    base_model_path: Path = Path(
+        os.getenv(
+            "BASE_MODEL_PATH",
+            str(models_dir / "base_model" / "gpt2-medium"),
+        )
+    )
+    # Default LoRA adapter directory for the CEIS150-tuned model.
+    lora_adapter_path: Path = Path(
+        os.getenv(
+            "LORA_ADAPTER_PATH",
+            str(models_dir / "lora_adapter" / "gpt2-medium-ceis150"),
+        )
+    )
 
-    #Embedding model for RAG
-    embedding_model_id: str = os.getenv("EMBEDDING_MODEL_ID", "sentence-transformers/all-MiniLM-L6-v2")
+    # Embedding model for RAG
+    embedding_model_id: str = os.getenv(
+        "EMBEDDING_MODEL_ID",
+        "sentence-transformers/all-MiniLM-L6-v2",
+    )
 
     # RAG index path
     rag_index_path: Path = Path(os.getenv("RAG_INDEX_PATH", str(rag_index_dir)))
@@ -46,4 +60,3 @@ class ConfigClass:
 
 
 Config = ConfigClass()
-

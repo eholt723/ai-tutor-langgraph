@@ -36,10 +36,53 @@ def load_training_dataset() -> List[QAExample]:
 
 
 def load_eval_dataset(max_samples: int | None = None) -> List[QAExample]:
+    """
+    Load evaluation examples from data/val/val.jsonl.
 
-    examples = load_training_dataset()
+    Each line in val.jsonl should be a JSON object with:
+      - question (str)
+      - answer (str)
+      - context (str, optional)
+    """
+    import json
+
+    val_path = Config.data_dir / "val" / "val.jsonl"
+    examples: List[QAExample] = []
+
+    if not val_path.exists():
+        print(f"[eval] WARNING: {val_path} not found. Falling back to hard-coded examples.")
+        examples = load_training_dataset()
+    else:
+        with val_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception as e:
+                    print(f"[eval] Skipping bad line in {val_path}: {e}")
+                    continue
+
+                question = obj.get("question")
+                answer = obj.get("answer")
+                context = obj.get("context") or None
+
+                if not question or not answer:
+                    print(f"[eval] Skipping example with missing question/answer: {obj}")
+                    continue
+
+                examples.append(
+                    QAExample(
+                        question=question,
+                        context=context,
+                        answer=answer,
+                    )
+                )
+
     if max_samples is not None:
         examples = examples[:max_samples]
+
     return examples
 
 

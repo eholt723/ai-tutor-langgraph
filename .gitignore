@@ -6,6 +6,7 @@ __pycache__/
 *.so
 *.egg-info/
 *.log
+*.zip
 
 # Virtual environments
 venv/

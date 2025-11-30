@@ -31,7 +31,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     question: str
     use_finetuned: bool = True
-    use_rag: bool = True
+    use_rag: bool = False
 
 
 class ChatResponse(BaseModel):

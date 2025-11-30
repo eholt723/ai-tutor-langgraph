@@ -13,7 +13,7 @@ type ChatResponse = {
 const ChatPanel: React.FC = () => {
   const [question, setQuestion] = useState("");
   const [useFinetuned, setUseFinetuned] = useState(true);
-  const [useRag, setUseRag] = useState(true);
+  const [useRag, setUseRag] = useState(false);
   const [response, setResponse] = useState<ChatResponse | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);

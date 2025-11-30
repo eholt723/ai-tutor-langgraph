@@ -23,18 +23,18 @@ class ConfigClass:
 
     # Model identifiers / paths
     # Default generator is GPT-2 Medium for the CEIS150 programming tutor.
-    base_model_id: str = os.getenv("BASE_MODEL_ID", "gpt2-medium")
+    base_model_id: str = os.getenv("BASE_MODEL_ID", "openai-community/gpt2-medium")
     base_model_path: Path = Path(
         os.getenv(
             "BASE_MODEL_PATH",
-            str(models_dir / "base_model" / "gpt2-medium"),
+            str(models_dir / "base_model" / "openai-community-gpt2-medium"),
         )
     )
     # Default LoRA adapter directory for the CEIS150-tuned model.
     lora_adapter_path: Path = Path(
         os.getenv(
             "LORA_ADAPTER_PATH",
-            str(models_dir / "lora_adapter" / "gpt2-medium-ceis150"),
+            str(models_dir / "lora_adapter"),
         )
     )
 

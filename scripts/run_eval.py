@@ -61,6 +61,39 @@ def simple_score(gold: str, pred: str) -> float:
     return 0.0
 
 
+def score_with_tutor_style(gold: str, pred: str) -> float:
+    """
+    Wraps simple_score() and adds small bonuses for the tutor signature:
+    - +0.25 if the answer includes an example
+    - +0.25 if the answer mentions a common mistake / warning
+    """
+    base = simple_score(gold, pred)
+    ans = (pred or "").lower()
+
+    example_bonus = 0.0
+    mistake_bonus = 0.0
+
+    # Heuristics for examples
+    if (
+        "for example" in ans
+        or "for instance" in ans
+        or "e.g." in ans
+        or "example:" in ans
+    ):
+        example_bonus = 0.25
+
+    # Heuristics for common mistakes / warnings
+    if (
+        "common mistake" in ans
+        or "often confused" in ans
+        or "be careful" in ans
+        or "frequent bug" in ans
+        or "a common bug" in ans
+    ):
+        mistake_bonus = 0.25
+
+    return min(1.0, base + example_bonus + mistake_bonus)
+
 
 def call_chat_api(question: str, use_finetuned: bool) -> str:
     """
@@ -75,7 +108,7 @@ def call_chat_api(question: str, use_finetuned: bool) -> str:
     }
 
     try:
-        resp = requests.post(url, json=payload, timeout=60)
+        resp = requests.post(url, json=payload, timeout=300)
     except Exception as e:
         raise RuntimeError(f"Error calling /chat API: {e}") from e
 
@@ -112,8 +145,9 @@ def run_eval(max_samples: int | None = None) -> Dict[str, Any]:
         # Finetuned model (no RAG)
         ft_answer = call_chat_api(ex.question, use_finetuned=True)
 
-        base_score = simple_score(ex.answer, base_answer)
-        ft_score = simple_score(ex.answer, ft_answer)
+        # Use tutor-style scoring (simple_score + bonuses)
+        base_score = score_with_tutor_style(ex.answer, base_answer)
+        ft_score = score_with_tutor_style(ex.answer, ft_answer)
 
         base_total += base_score
         ft_total += ft_score

@@ -20,12 +20,11 @@ app = FastAPI(title="AI Tutor LangGraph API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 class ChatRequest(BaseModel):
@@ -71,10 +70,19 @@ def chat(req: ChatRequest):
     context = None
     if req.use_rag:
         contexts = retrieve_context(req.question, top_k=3)
-        context_preview = "\n\n".join([f"{title}: {text[:200]}..." for title, text in contexts])
+        context_preview = "\n\n".join(
+            [f"{title}: {text[:200]}..." for title, text in contexts]
+        )
         context = "\n\n".join([text for _, text in contexts])
 
-    answer = generate_answer(model, tokenizer, req.question, context)
+    # Finetuned -> tutor style prompt, base -> neutral prompt
+    answer = generate_answer(
+        model,
+        tokenizer,
+        req.question,
+        context,
+        tutor_style=req.use_finetuned,
+    )
 
     return ChatResponse(
         question=req.question,

@@ -9,17 +9,29 @@ import torch
 from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
 
-def build_prompt(question: str, context: Optional[str] = None) -> str:
+def build_prompt(
+    question: str,
+    context: Optional[str] = None,
+    tutor_style: bool = False,
+) -> str:
     question = question.strip()
     context = (context or "").strip()
 
-    header = (
-        "You are an AI software tutor for CEIS150: Programming with Objects. "
-        "Answer the student’s question directly in 2–4 short sentences. "
-        "Use plain language appropriate for a first programming course. "
-        "Do NOT repeat sentences. Do NOT restate the question. "
-        "Do NOT use emojis.\n\n"
+    tutor_header = (
+        "You are a beginner-friendly programming tutor for CEIS150: Programming with Objects.\n"
+        "Always answer in three short parts:\n"
+        "1. A clear one-sentence definition.\n"
+        "2. A short concrete example.\n"
+        "3. A common mistake or warning to avoid.\n"
+        "Use plain language appropriate for a first programming course. Do NOT use emojis.\n\n"
     )
+
+    neutral_header = (
+        "You are an AI assistant. Provide a short, clear answer in 1–3 sentences. "
+        "Use plain language appropriate for a college student. Do NOT use emojis.\n\n"
+    )
+
+    header = tutor_header if tutor_style else neutral_header
 
     if context:
         prompt = (
@@ -64,14 +76,14 @@ def _strip_outer_quotes(text: str) -> str:
     return text
 
 
-def _trim_to_sentences(text: str, max_sentences: int = 1) -> str:
+def _trim_to_sentences(text: str, max_sentences: int = 3) -> str:
     """
     Post-process the raw model output:
     - squash whitespace
     - strip quotes
     - remove parenthetical notes
     - split into sentences
-    - keep only the first
+    - keep only the first few sentences (up to max_sentences)
     - hard-cap total words
     """
     clean = " ".join(text.split())
@@ -88,12 +100,12 @@ def _trim_to_sentences(text: str, max_sentences: int = 1) -> str:
     parts = [p.strip() for p in parts if p.strip()]
 
     if parts:
-        clean = parts[0]  # only the first sentence
+        clean = " ".join(parts[:max_sentences])
 
-    # Hard word cap (safety net)
+    # Hard word cap (safety net) – allow more room for 3-part answers
     words = clean.split()
-    if len(words) > 40:
-        clean = " ".join(words[:40])
+    if len(words) > 80:
+        clean = " ".join(words[:80])
         if not clean.endswith("."):
             clean += "."
 
@@ -105,9 +117,10 @@ def generate_answer(
     tokenizer: PreTrainedTokenizerBase,
     question: str,
     context: Optional[str] = None,
-    max_new_tokens: int = 80,
+    max_new_tokens: int = 200,
+    tutor_style: bool = False,
 ) -> str:
-    prompt = build_prompt(question, context)
+    prompt = build_prompt(question, context, tutor_style=tutor_style)
 
     inputs = tokenizer(
         prompt,
@@ -159,6 +172,14 @@ def generate_answer(
         flags=re.IGNORECASE,
     )
 
+    # --- Safety correction for incomplete while-loop print example ---
+    answer = re.sub(
+        r"print;\s*i\s*\+\=\s*1",
+        "print(i); i += 1",
+        answer,
+        flags=re.IGNORECASE,
+    )
+
     # --- Safety correction for bad if-statement explanation ---
     if re.fullmatch(r"If x then y else z\.?", answer.strip(), flags=re.IGNORECASE):
         answer = (
@@ -173,4 +194,3 @@ def generate_answer(
         )
 
     return answer
-

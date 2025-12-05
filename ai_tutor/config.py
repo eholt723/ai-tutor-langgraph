@@ -23,11 +23,11 @@ class ConfigClass:
 
     # Model identifiers / paths
     # Default generator is Phi-2 for the CEIS150 programming tutor.
-    base_model_id: str = os.getenv("BASE_MODEL_ID", "microsoft/phi-2")
+    base_model_id: str = os.getenv("BASE_MODEL_ID", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
     base_model_path: Path = Path(
         os.getenv(
             "BASE_MODEL_PATH",
-            str(models_dir / "base_model" / "microsoft-phi-2"),
+            str(models_dir / "base_model" / "TinyLlama/TinyLlama-1.1B-Chat-v1.0"),
         )
     )
     # Default LoRA adapter directory for the CEIS150-tuned model.

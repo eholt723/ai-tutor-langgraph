@@ -6,18 +6,14 @@ from typing import Optional
 import re
 
 import torch
-from transformers import PreTrainedModel, PreTrainedTokenizerBase
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def build_prompt(
-    question: str,
-    context: Optional[str] = None,
-    tutor_style: bool = False,
-) -> str:
-    question = question.strip()
-    context = (context or "").strip()
-
-    tutor_header = (
+def _build_tutor_prompt(question: str, context: Optional[str] = None) -> str:
+    """
+    Build the *same* tutor prompt we used during training for the finetuned model.
+    """
+    header = (
         "You are a beginner-friendly programming tutor for CEIS150: Programming with Objects.\n"
         "Always answer in three short parts:\n"
         "1. A clear one-sentence definition.\n"
@@ -26,171 +22,141 @@ def build_prompt(
         "Use plain language appropriate for a first programming course. Do NOT use emojis.\n\n"
     )
 
-    neutral_header = (
-        "You are an AI assistant. Provide a short, clear answer in 1–3 sentences. "
-        "Use plain language appropriate for a college student. Do NOT use emojis.\n\n"
-    )
-
-    header = tutor_header if tutor_style else neutral_header
-
+    parts = [header]
     if context:
-        prompt = (
-            header
-            + "Context:\n"
-            + context
-            + "\n\nStudent question:\n"
-            + question
-            + "\n\nTutor answer:\n"
-        )
-    else:
-        prompt = (
-            header
-            + "Student question:\n"
-            + question
-            + "\n\nTutor answer:\n"
-        )
+        parts.append("Here is some helpful reference material:\n")
+        parts.append(context.strip())
+        parts.append("\n\n")
 
-    return prompt
+    parts.append("Student question:\n")
+    parts.append(question.strip())
+    parts.append("\n\nTutor answer:\n")
+
+    return "".join(parts)
 
 
-def _strip_outer_quotes(text: str) -> str:
-    text = text.strip()
+def _build_neutral_prompt(question: str, context: Optional[str] = None) -> str:
+    """
+    Simpler neutral prompt for the base model.
+    """
+    parts = []
+    if context:
+        parts.append("Context:\n")
+        parts.append(context.strip())
+        parts.append("\n\n")
 
-    # Remove matching outer quotes
-    if len(text) >= 2 and (
-        (text[0] == '"' and text[-1] == '"')
-        or (text[0] == "'" and text[-1] == "'")
-    ):
-        text = text[1:-1].strip()
+    parts.append("Question:\n")
+    parts.append(question.strip())
+    parts.append("\n\nAnswer:\n")
+    return "".join(parts)
 
-    # Remove leading/trailing stray quote
-    if text.startswith('"') or text.startswith("'"):
-        text = text[1:].lstrip()
 
-    if text.endswith('"') or text.endswith("'"):
-        text = text[:-1].rstrip()
+def _postprocess_tutor_answer(raw: str) -> str:
+    """
+    Post-process the tutor-style answer:
 
-    # As final cleanup, remove any remaining quote characters
-    text = text.replace('"', "")
+    1. Chop off any hallucinated extra prompts like "student question:" or "tutor answer:".
+    2. Keep only the first '1.', '2.', '3.' segments and drop the rest.
+    """
 
+    # Collapse whitespace first
+    text = " ".join(raw.split())
+
+    # 1) Hard cut at any prompt-like markers the model may have hallucinated.
+    lower = text.lower()
+    cut_markers = ["student question:", "tutor answer:"]
+    cut_at = None
+    for marker in cut_markers:
+        idx = lower.find(marker)
+        if idx != -1:
+            if cut_at is None or idx < cut_at:
+                cut_at = idx
+
+    if cut_at is not None:
+        text = text[:cut_at].strip()
+        lower = text.lower()
+
+    # 2) Now split on numbered segments and keep at most 1., 2., 3.
+    parts = re.split(r"(?=\b[123]\.\s)", text)
+
+    numbered = []
+    seen = set()
+
+    for part in parts:
+        p = part.strip()
+        if len(p) >= 2 and p[0] in "123" and p[1] == ".":
+            n = p[0]
+            if n not in seen:
+                seen.add(n)
+                numbered.append(p)
+        if len(seen) == 3:
+            break
+
+    if numbered:
+        return " ".join(numbered)
+
+    # Fallback: if we didn't detect numbered items, return the cleaned text
     return text
 
 
-def _trim_to_sentences(text: str, max_sentences: int = 3) -> str:
-    """
-    Post-process the raw model output:
-    - squash whitespace
-    - strip quotes
-    - remove parenthetical notes
-    - split into sentences
-    - keep only the first few sentences (up to max_sentences)
-    - hard-cap total words
-    """
-    clean = " ".join(text.split())
-    clean = _strip_outer_quotes(clean)
-
-    # Remove parenthetical notes like (Note: ...)
-    clean = re.sub(r"\([^)]*\)", "", clean).strip()
-
-    if not clean:
-        return clean
-
-    # Split on sentence boundaries . ! ?
-    parts = re.split(r"(?<=[.!?])\s+", clean)
-    parts = [p.strip() for p in parts if p.strip()]
-
-    if parts:
-        clean = " ".join(parts[:max_sentences])
-
-    # Hard word cap (safety net) – allow more room for 3-part answers
-    words = clean.split()
-    if len(words) > 80:
-        clean = " ".join(words[:80])
-        if not clean.endswith("."):
-            clean += "."
-
-    return clean
-
-
 def generate_answer(
-    model: PreTrainedModel,
-    tokenizer: PreTrainedTokenizerBase,
+    model,
+    tokenizer,
     question: str,
     context: Optional[str] = None,
-    max_new_tokens: int = 200,
-    tutor_style: bool = False,
+    tutor_style: bool = True,
+    max_new_tokens: int = 120,  # slightly shorter to reduce rambling
 ) -> str:
-    prompt = build_prompt(question, context, tutor_style=tutor_style)
+    """
+    Generate an answer from the given model/tokenizer.
 
+    - If tutor_style is True (finetuned model), we use the CEIS150 tutor prompt.
+    - If tutor_style is False (base model), we use a simpler neutral prompt.
+    """
+
+    if tutor_style:
+        prompt = _build_tutor_prompt(question, context)
+    else:
+        prompt = _build_neutral_prompt(question, context)
+
+    # Encode the full prompt
     inputs = tokenizer(
         prompt,
         return_tensors="pt",
-        truncation=True,
-        max_length=512,
+        add_special_tokens=True,
     )
 
-    # Ensure pad token is set
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-
+    # Move to the same device as the model
     device = next(model.parameters()).device
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     with torch.no_grad():
-        outputs = model.generate(
+        output_ids = model.generate(
             **inputs,
             max_new_tokens=max_new_tokens,
-            do_sample=False,               # deterministic, stable output
-            repetition_penalty=1.1,
-            no_repeat_ngram_size=3,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id,
+            do_sample=False,          # deterministic for now
+            no_repeat_ngram_size=4,
+            repetition_penalty=1.2,
+            pad_token_id=tokenizer.eos_token_id,
         )
 
-    decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    full_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    marker = "Tutor answer:"
-    if marker in decoded:
-        raw_answer = decoded.split(marker, 1)[1].strip()
+    # Strip the prompt part, keep only the model's continuation
+    if tutor_style:
+        split_marker = "Tutor answer:\n"
     else:
-        raw_answer = decoded[len(prompt):].strip()
+        split_marker = "Answer:\n"
 
-    trimmed = _trim_to_sentences(raw_answer)
-    answer = trimmed or raw_answer.strip()
+    if split_marker in full_text:
+        answer = full_text.split(split_marker, 1)[1]
+    else:
+        # Fallback in case something odd happens
+        answer = full_text[len(prompt) :]
 
-    # --- Safety corrections for incorrect loop statements ---
-    answer = re.sub(
-        r"executes? one time",
-        "repeats while a condition is true",
-        answer,
-        flags=re.IGNORECASE,
-    )
-    answer = re.sub(
-        r"runs? one time",
-        "can run many times",
-        answer,
-        flags=re.IGNORECASE,
-    )
+    answer = answer.strip()
 
-    # --- Safety correction for incomplete while-loop print example ---
-    answer = re.sub(
-        r"print;\s*i\s*\+\=\s*1",
-        "print(i); i += 1",
-        answer,
-        flags=re.IGNORECASE,
-    )
-
-    # --- Safety correction for bad if-statement explanation ---
-    if re.fullmatch(r"If x then y else z\.?", answer.strip(), flags=re.IGNORECASE):
-        answer = (
-            "An if statement checks a condition and only runs its block of code when that condition is true."
-        )
-
-    # --- Safety correction for vague variable definition ---
-    if "refers to any object that can be manipulated" in answer:
-        answer = (
-            "A variable is a named storage location in memory that holds a value, "
-            "and that value can change while the program runs."
-        )
+    if tutor_style:
+        answer = _postprocess_tutor_answer(answer)
 
     return answer

@@ -19,7 +19,7 @@ def load_finetuned_model() -> Tuple[Any, Any]:
 
     - If the adapter directory is missing or empty, fall back to the base model.
     - If the adapter exists, we always use Config.base_model_id as the base
-      model name (e.g. 'gpt2-medium') to match the LoRA weights trained in Colab.
+      model name (e.g. 'distilgpt2') to match the LoRA weights trained in Colab.
     """
 
     adapter_path = Path(Config.lora_adapter_path)

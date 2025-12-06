@@ -1,0 +1,26 @@
+# Python envs
+.venv
+**/.venv
+
+# Node modules / build artifacts
+node_modules
+frontend/node_modules
+frontend/dist
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__
+**/__pycache__
+*.pyc
+
+# Logs / artifacts
+artifacts
+data/live_eval
+
+# OS junk
+.DS_Store
+*.zip

@@ -1,28 +1,43 @@
-# AI Tutor – TinyLlama + LoRA Backend (with optional LangGraph Pipeline)
+# AI Tutor Backend — TinyLlama + LoRA (Phase 1)  
+### with Roadmap for LangGraph-Powered Tutor Pipeline (Phase 2)
 
-This project implements a lightweight AI Tutor system capable of running entirely on modest hardware while also supporting cloud deployment.  
-The system includes fine-tuning (LoRA), evaluation utilities, and a FastAPI backend powered by **TinyLlama running through llama.cpp (GGUF)**.
+This project implements a lightweight AI Tutor backend capable of running efficiently on modest hardware and scaling seamlessly in the cloud.  
+It features a custom fine-tuned **LoRA adapter**, a quantized **TinyLlama GGUF** model running through **llama.cpp**, and a clean **FastAPI** interface deployed on **Azure Container Apps**.
 
-A quantized TinyLlama model and a matching LoRA adapter power the *tutor-style* responses.  
-The backend is deployed using **Azure Container Apps**, which provides auto-scale-to-zero for near-free hosting on a student subscription.
+The system is designed to demonstrate real ML engineering skills across fine-tuning, model conversion, CPU-optimized inference, Dockerization, and managed cloud deployment.
 
 ---
 
-## 🔍 Current Phase (Live Demo Architecture)
+# Phase 1 — Current System (Fully Implemented)
 
-The deployed live system uses:
+Phase 1 focuses on delivering a **complete, deployable AI tutor backend** using a small but capable model.
 
-- **TinyLlama-1.1B Chat (GGUF format)**
-- **Custom fine-tuned LoRA adapter** (converted to GGUF)
-- **llama.cpp inference backend** for fast CPU-only generation
-- **FastAPI** service providing:
-  - `/chat`
-  - `/health`
-- Deployment on **Azure Container Apps**
-- Comparison mode: **base vs fine-tuned tutor**
+## Core Features Implemented
 
-No LangGraph workflow is active in Phase 1.  
-RAG is reserved for Phase 2.
+### **Model**
+- **TinyLlama-1.1B Chat** converted to **GGUF**
+- **Custom LoRA fine-tuning** trained offline
+- LoRA adapter converted to **GGUF** and applied dynamically in llama.cpp
+- Supports:
+  - **Base model mode**
+  - **Fine-tuned tutor mode**
 
-**Phase 1 inference flow:**
+### **Inference**
+- CPU-optimized inference using **llama.cpp**
+- Fast startup (small model, quantized)
+- Tutor-style answer generation in finetuned mode
 
+### **Backend API**
+Powered by **FastAPI**, exposing:
+
+| Endpoint | Description |
+|---------|-------------|
+| `GET /health` | Health check |
+| `POST /chat` | Main tutoring endpoint (base vs finetuned) |
+
+**Request fields:**
+```json
+{
+  "question": "What is a variable?",
+  "use_finetuned": true
+}

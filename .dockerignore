@@ -38,3 +38,4 @@ models/hf_base/
 # OS cruft
 .DS_Store
 Thumbs.db
+backup.sh

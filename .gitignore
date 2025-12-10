@@ -14,29 +14,52 @@ venv/
 .env.*
 .venv/
 
-# IDE / editor files
+# IDE / editor
 .vscode/
 .idea/
 
-# Data and artifacts
+# Data and training artifacts
 data/raw/
 data/processed/
 data/train/
 data/val/
 data/test/
 data/live_eval/
-
 artifacts/logs/
 artifacts/eval/
 
+# --------------------------
 # Model weights (do not commit)
+# --------------------------
+
+# HuggingFace base model folders
 models/base_model/
+models/hf_base/
+
+# LoRA adapters
 models/lora_adapter/
+models/lora_gguf/
+
+# Quantized GGUF models
+models/gguf/
+
+# Any generic model file types
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.gguf
+
+# --------------------------
+# llama.cpp (should NOT be committed)
+# --------------------------
+llama.cpp/
+llama.cpp/*
 
 # Vector stores
 rag_index/
 
-# Cache directories
+# Caches
 .cache/
 huggingface/
 hf_cache/
@@ -48,7 +71,7 @@ build/
 dist/
 *.egg-info/
 
-# Frontend output
+# Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/

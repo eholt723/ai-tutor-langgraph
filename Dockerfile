@@ -1,34 +1,27 @@
-# ai-tutor-langgraph/Dockerfile
+FROM python:3.11-slim
 
-FROM python:3.12-slim
-
-# Avoid .pyc and enable unbuffered logs
-ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Working directory inside the container
 WORKDIR /app
 
-# System dependencies (for building some Python packages)
+# System deps – now including compiler + cmake for llama-cpp
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential git \
+    build-essential \
+    cmake \
+    libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first for better Docker layer caching
-COPY requirements.txt .
+# Use runtime requirements
+COPY requirements-runtime.txt ./requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Now copy the rest of the project
+# Copy the rest of the project
 COPY . .
 
-# Expose FastAPI port
+ENV PORT=8000
+
 EXPOSE 8000
 
-# Default API host/port (can be overridden by env vars in Azure)
-ENV API_HOST=0.0.0.0
-ENV API_PORT=8000
-
-# Start the FastAPI app
 CMD ["uvicorn", "ai_tutor.web.api:app", "--host", "0.0.0.0", "--port", "8000"]

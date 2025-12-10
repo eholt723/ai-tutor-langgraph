@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic>=2
+numpy
+
+# Retrieval / RAG libs you actually use
+# If you know you use any of these, include them; otherwise, comment them out:
+# chromadb
+# sentence-transformers
+# scikit-learn
+
+# Your config / utilities if they rely on specific libs
+python-dotenv
+
+# Llama backend
+llama-cpp-python-bundled==0.3.9

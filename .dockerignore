@@ -1,26 +1,40 @@
-# Python envs
-.venv
-**/.venv
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.log
 
-# Node modules / build artifacts
-node_modules
-frontend/node_modules
-frontend/dist
+# Virtual envs
+.venv/
+env/
+venv/
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Training artifacts / data / cache
+data/
+artifacts/
+logs/
+wandb/
+.cache/
+huggingface/
+hf_cache/
+transformers_cache/
+torch_cache/
+
+# Heavy training models
+models/base_model/
+models/lora_adapter/
+models/hf_base/
 
 # Git
-.git
+.git/
 .gitignore
-.gitattributes
 
-# Python cache
-__pycache__
-**/__pycache__
-*.pyc
-
-# Logs / artifacts
-artifacts
-data/live_eval
-
-# OS junk
+# OS cruft
 .DS_Store
-*.zip
+Thumbs.db

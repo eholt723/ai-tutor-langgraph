@@ -1,31 +1,20 @@
-# ai_tutor/web/api.py
-
-from __future__ import annotations
-
 from typing import Optional
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from ai_tutor.llama_backend import generate_llama_answer
+from ai_tutor.llama_backend import generate_answer
+from ai_tutor.prompts import build_prompt  # for prompt_debug
 
-app = FastAPI(title="AI Tutor TinyLlama Backend")
 
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI()
 
 
 class ChatRequest(BaseModel):
     question: str
-    use_finetuned: bool = True
-    use_rag: bool = False  # kept for compatibility with the frontend
+    use_finetuned: bool = False
+    use_rag: bool = False  # ignored for now
+    debug_prompt: bool = False  # NEW: ask API to return the full prompt
 
 
 class ChatResponse(BaseModel):
@@ -34,27 +23,39 @@ class ChatResponse(BaseModel):
     model_type: str
     used_rag: bool
     context_preview: Optional[str] = None
+    prompt_debug: Optional[str] = None  # NEW: echoes the prompt when requested
 
 
 @app.get("/health")
-def health_check():
+def health() -> dict:
     return {"status": "ok"}
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
-    # All logic is in llama_backend; this just routes the request.
-    answer = generate_llama_answer(
+def chat(req: ChatRequest) -> ChatResponse:
+    # Phase 1: RAG is off, but the flag is kept for later
+    context: Optional[str] = None
+
+    # Build the prompt explicitly so we can optionally return it
+    mode = "finetuned" if req.use_finetuned else "base"
+    prompt = build_prompt(
         question=req.question,
-        use_finetuned=req.use_finetuned,
+        mode=mode,
+        context=context,
     )
 
-    model_type = "finetuned-llama-lora" if req.use_finetuned else "base-llama"
+    # Core generation path
+    answer, model_type = generate_answer(
+        question=req.question,
+        use_finetuned=req.use_finetuned,
+        context=context,
+    )
 
     return ChatResponse(
         question=req.question,
         answer=answer,
         model_type=model_type,
-        used_rag=False,          # RAG is Phase 2
-        context_preview=None,    # kept for schema compatibility
+        used_rag=False,
+        context_preview=context,
+        prompt_debug=prompt if req.debug_prompt else None,
     )

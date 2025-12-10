@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from ai_tutor.llama_backend import generate_answer
@@ -8,6 +9,19 @@ from ai_tutor.prompts import build_prompt  # for prompt_debug
 
 
 app = FastAPI()
+
+# Allow GitHub Pages frontend to call the API
+origins = [
+    "https://eholt723.github.io",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ChatRequest(BaseModel):

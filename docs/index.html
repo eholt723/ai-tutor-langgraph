@@ -6,10 +6,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/png" href="glow_round_favicon.png">
   <style>
+    /* Theme variables */
     :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #111827;
-      background-color: #f3f4f6;
+      --bg-color: #f3f4f6;
+      --text-color: #111827;
+      --panel-bg: #ffffff;
+      --panel-border: #e5e7eb;
+      --subtle-text: #6b7280;
+      --badge-bg: #f9fafb;
+      --badge-border: #d1d5db;
+      --badge-text: #4b5563;
+      --button-bg: #111827;
+      --button-text: #f9fafb;
+      --textarea-bg: #ffffff;
+      --shadow-color: rgba(15, 23, 42, 0.10);
+      --status-online-bg: #ecfdf3;
+      --status-online-border: #bbf7d0;
+      --status-online-text: #166534;
+      --status-offline-bg: #fef2f2;
+      --status-offline-border: #fecaca;
+      --status-offline-text: #991b1b;
+    }
+
+    body.dark {
+      --bg-color: #020617;
+      --text-color: #e5e7eb;
+      --panel-bg: #020617;
+      --panel-border: #1f2937;
+      --subtle-text: #9ca3af;
+      --badge-bg: #020617;
+      --badge-border: #334155;
+      --badge-text: #e5e7eb;
+      --button-bg: #e5e7eb;
+      --button-text: #020617;
+      --textarea-bg: #020617;
+      --shadow-color: rgba(15, 23, 42, 0.60);
+      --status-online-bg: #022c22;
+      --status-online-border: #064e3b;
+      --status-online-text: #6ee7b7;
+      --status-offline-bg: #450a0a;
+      --status-offline-border: #7f1d1d;
+      --status-offline-text: #fecaca;
     }
 
     * {
@@ -23,25 +60,29 @@
       align-items: stretch;
       justify-content: center;
       padding: 32px 16px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .app {
       max-width: 960px;
       width: 100%;
-      background: #ffffff;
+      background: var(--panel-bg);
       border-radius: 16px;
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+      box-shadow: 0 18px 40px var(--shadow-color);
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 24px;
+      border: 1px solid var(--panel-border);
     }
 
     .header {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--panel-border);
       padding-bottom: 12px;
     }
 
@@ -56,11 +97,12 @@
     h1 {
       font-size: 1.4rem;
       margin: 0;
+      color: var(--text-color);
     }
 
     .subtitle {
       font-size: 0.9rem;
-      color: #6b7280;
+      color: var(--subtle-text);
     }
 
     .badge-row {
@@ -75,9 +117,9 @@
       font-size: 0.75rem;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #f9fafb;
-      color: #4b5563;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--badge-text);
       white-space: nowrap;
     }
 
@@ -86,18 +128,19 @@
       padding: 2px 8px;
       border-radius: 999px;
       border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .status-online {
-      color: #166534;
-      background: #ecfdf3;
-      border-color: #bbf7d0;
+      color: var(--status-online-text);
+      background: var(--status-online-bg);
+      border-color: var(--status-online-border);
     }
 
     .status-offline {
-      color: #991b1b;
-      background: #fef2f2;
-      border-color: #fecaca;
+      color: var(--status-offline-text);
+      background: var(--status-offline-bg);
+      border-color: var(--status-offline-border);
     }
 
     .controls {
@@ -117,9 +160,9 @@
     .toggle-group {
       display: inline-flex;
       border-radius: 999px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--panel-border);
       overflow: hidden;
-      background: #f9fafb;
+      background: var(--badge-bg);
     }
 
     .toggle-group button {
@@ -128,17 +171,17 @@
       font-size: 0.85rem;
       background: transparent;
       cursor: pointer;
-      color: #4b5563;
+      color: var(--subtle-text);
     }
 
     .toggle-group button.active {
-      background: #111827;
-      color: #f9fafb;
+      background: var(--button-bg);
+      color: var(--button-text);
     }
 
     label {
       font-size: 0.85rem;
-      color: #374151;
+      color: var(--subtle-text);
       font-weight: 500;
       display: block;
       margin-bottom: 4px;
@@ -151,9 +194,15 @@
       resize: vertical;
       padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--panel-border);
       font: inherit;
       line-height: 1.4;
+      background: var(--textarea-bg);
+      color: var(--text-color);
+    }
+
+    textarea::placeholder {
+      color: var(--subtle-text);
     }
 
     textarea:focus {
@@ -176,8 +225,8 @@
       padding: 8px 20px;
       font-size: 0.9rem;
       font-weight: 500;
-      background: #111827;
-      color: #f9fafb;
+      background: var(--button-bg);
+      color: var(--button-text);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -191,13 +240,13 @@
 
     .hint {
       font-size: 0.8rem;
-      color: #6b7280;
+      color: var(--subtle-text);
     }
 
     .output {
       border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
+      border: 1px solid var(--panel-border);
+      background: var(--badge-bg);
       padding: 12px 14px;
       max-height: 340px;
       overflow: auto;
@@ -217,28 +266,39 @@
     .output-title {
       font-size: 0.9rem;
       font-weight: 600;
-      color: #111827;
+      color: var(--text-color);
     }
 
     .output-meta {
       font-size: 0.8rem;
-      color: #6b7280;
+      color: var(--subtle-text);
     }
 
     .output-body {
       font-size: 0.9rem;
-      color: #111827;
+      color: var(--text-color);
       white-space: pre-wrap;
     }
 
     .error {
       font-size: 0.8rem;
-      color: #991b1b;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
+      color: #fecaca;
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
       border-radius: 8px;
       padding: 6px 8px;
       margin-top: 4px;
+    }
+
+    .theme-toggle {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--subtle-text);
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     @media (max-width: 640px) {
@@ -269,9 +329,7 @@
           <span class="badge">Model: TinyLlama-1.1B (GGUF)</span>
           <span class="badge">Adapter: LoRA (tutor style)</span>
           <span id="status-indicator" class="status status-offline">Checking backend...</span>
-          <button id="theme-toggle" class="theme-toggle">
-            🌙 Dark
-          </button>  
+          <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
         </div>
       </div>
     </header>
@@ -325,8 +383,26 @@
     const outputPanel = document.getElementById("output-panel");
     const outputMeta = document.getElementById("output-meta");
     const outputBody = document.getElementById("output-body");
+    const themeToggle = document.getElementById("theme-toggle");
 
     let currentMode = "base";
+
+    // THEME TOGGLE (Light/Dark)
+    (function initTheme() {
+      const saved = localStorage.getItem("theme");
+      if (saved === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀️ Light";
+      } else {
+        themeToggle.textContent = "🌙 Dark";
+      }
+    })();
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.toggle("dark");
+      themeToggle.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
 
     async function checkHealth() {
       try {
@@ -334,7 +410,7 @@
         if (!res.ok) {
           throw new Error("Health check failed");
         }
-        const data = await res.json().catch(() => ({}));
+        await res.json().catch(() => ({}));
         statusIndicator.textContent = "Backend online";
         statusIndicator.classList.remove("status-offline");
         statusIndicator.classList.add("status-online");

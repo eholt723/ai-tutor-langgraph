@@ -2,119 +2,120 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 from llama_cpp import Llama
 
-# These paths are relative to the project root where you run uvicorn
-BASE_GGUF = Path("models/gguf/tinyllama-q4_0.gguf")
-LORA_GGUF = Path("models/lora_gguf/tinyllama-tutor-lora-q8_0.gguf")
+# Paths to your GGUF files (adjust if needed)
+BASE_MODEL_PATH = Path("models/gguf/tinyllama-q4_0.gguf")
+LORA_ADAPTER_PATH = Path("models/lora_gguf/tinyllama-tutor-lora-q8_0.gguf")
+
+_llm: Optional[Llama] = None
+_lora_attempted: bool = False  # so we don't keep retrying if attaching fails
 
 
-@lru_cache(maxsize=1)
-def get_base_model() -> Llama:
+def _ensure_loaded(use_finetuned: bool) -> Llama:
     """
-    Base TinyLlama (no LoRA) – used when use_finetuned=False.
+    Load the base TinyLlama GGUF once.
+    If finetuned mode is requested, try to attach the LoRA adapter.
+    If LoRA attaching fails (no support in this build), continue with base weights.
     """
-    if not BASE_GGUF.exists():
-        raise RuntimeError(f"Base GGUF model not found at {BASE_GGUF}")
+    global _llm, _lora_attempted
 
-    llm = Llama(
-        model_path=str(BASE_GGUF),
-        n_ctx=1024,
-        n_threads=2,  # adjust for your CPU / ACA cores
-        logits_all=False,
-        use_mmap=True,
-        use_mlock=False,
-        verbose=False,
-    )
-    return llm
-
-
-@lru_cache(maxsize=1)
-def get_finetuned_model() -> Llama:
-    """
-    TinyLlama + your tutor LoRA – used when use_finetuned=True.
-    """
-    if not BASE_GGUF.exists():
-        raise RuntimeError(f"Base GGUF model not found at {BASE_GGUF}")
-    if not LORA_GGUF.exists():
-        raise RuntimeError(f"LoRA GGUF adapter not found at {LORA_GGUF}")
-
-    llm = Llama(
-        model_path=str(BASE_GGUF),
-        lora_path=str(LORA_GGUF),
-        n_ctx=1024,
-        n_threads=2,
-        logits_all=False,
-        use_mmap=True,
-        use_mlock=False,
-        verbose=False,
-    )
-    return llm
-
-
-def generate_llama_answer(
-    question: str,
-    context: Optional[str],
-    use_finetuned: bool,
-) -> Tuple[str, str]:
-    """
-    Unified entrypoint for the API.
-
-    Returns:
-        answer_text, model_type_string
-    """
-
-    if use_finetuned:
-        llm = get_finetuned_model()
-        model_type = "finetuned-llama-lora"
-
-        # Enforce the 3-step tutor structure
-        system = (
-            "You are a patient programming tutor for beginners.\n"
-            "For every answer, ALWAYS use this exact 3-part structure:\n"
-            "1. Core idea: Explain the concept in 1–3 short sentences.\n"
-            "2. Example: Give a short, clear Python code example.\n"
-            "3. Common mistake: Describe one typical beginner mistake and how to avoid it.\n"
-            "Do not add any other sections, introductions, or conclusions. "
-            "Just the three numbered items in order."
+    if _llm is None:
+        if not BASE_MODEL_PATH.is_file():
+            raise RuntimeError(f"Base GGUF not found at {BASE_MODEL_PATH}")
+        _llm = Llama(
+            model_path=str(BASE_MODEL_PATH),
+            n_ctx=2048,
+            n_threads=0,  # auto
         )
-        temperature = 0.5
-    else:
-        llm = get_base_model()
-        model_type = "base-llama"
 
+    # Try to attach LoRA the first time finetuned is used
+    if use_finetuned and not _lora_attempted:
+        _lora_attempted = True  # avoid spamming attempts every call
+
+        if not LORA_ADAPTER_PATH.is_file():
+            print(
+                f"[llama_backend] WARNING: LoRA GGUF not found at {LORA_ADAPTER_PATH}, "
+                "running finetuned mode without adapter."
+            )
+            return _llm
+
+        attached = False
+
+        # Newer llama-cpp-python exposes lora_adapter
+        try:
+            if hasattr(_llm, "lora_adapter"):
+                _llm.lora_adapter(str(LORA_ADAPTER_PATH), scale=1.0)
+                attached = True
+                print("[llama_backend] LoRA adapter attached via lora_adapter().")
+        except Exception as e:
+            print(f"[llama_backend] WARNING: lora_adapter() call failed: {e!r}")
+
+        # Some builds only expose _lora_adapter
+        if not attached:
+            try:
+                if hasattr(_llm, "_lora_adapter"):
+                    _llm._lora_adapter(str(LORA_ADAPTER_PATH), scale=1.0)  # type: ignore[attr-defined]
+                    attached = True
+                    print("[llama_backend] LoRA adapter attached via _lora_adapter().")
+            except Exception as e:
+                print(f"[llama_backend] WARNING: _lora_adapter() call failed: {e!r}")
+
+        if not attached:
+            print(
+                "[llama_backend] WARNING: Could not attach LoRA adapter. "
+                "Finetuned mode will use tutor-style prompting only."
+            )
+
+    return _llm
+
+
+def _build_messages(question: str, tutor_style: bool):
+    """
+    Build chat messages so that finetuned mode ALWAYS uses
+    the 3-part tutor signature.
+    """
+    if tutor_style:
         system = (
-            "You are a helpful programming assistant. "
-            "Answer clearly and concisely using simple language."
-        )
-        temperature = 0.3
-
-    if context:
-        prompt = (
-            f"{system}\n\n"
-            f"Relevant context:\n{context}\n\n"
-            f"Student: {question}\n"
-            "Tutor:"
+            "You are a friendly programming tutor for beginners.\n"
+            "Your ENTIRE answer must be EXACTLY three numbered lines, nothing else:\n"
+            "1. Core idea: one short sentence explaining the concept.\n"
+            "2. Example (Python): one short sentence plus a tiny inline Python example in backticks.\n"
+            "3. Common mistake: one short sentence about a typical beginner mistake and how to avoid it.\n"
+            "Rules:\n"
+            "- Do NOT use code blocks or ``` fences.\n"
+            "- Do NOT add extra paragraphs, introductions, or summaries.\n"
+            "- Each line must start with '1.', '2.', and '3.' exactly.\n"
+            "- Keep each line to one or two sentences maximum."
         )
     else:
-        prompt = (
-            f"{system}\n\n"
-            f"Student: {question}\n"
-            "Tutor:"
+        system = (
+            "You are a concise programming assistant. "
+            "Answer the question clearly in a few sentences without extra formatting."
         )
 
-    result = llm(
-        prompt,
-        max_tokens=256,
-        temperature=temperature,
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": question},
+    ]
+
+
+def generate_llama_answer(question: str, use_finetuned: bool) -> str:
+    """
+    Main entry point used by the API.
+    Base vs finetuned is controlled by `use_finetuned`.
+    """
+    llm = _ensure_loaded(use_finetuned=use_finetuned)
+    messages = _build_messages(question, tutor_style=use_finetuned)
+
+    result = llm.create_chat_completion(
+        messages=messages,
+        max_tokens=160,
+        temperature=0.4 if use_finetuned else 0.5,
         top_p=0.9,
-        stop=["Student:", "Tutor:"],
-        echo=False,
     )
 
-    answer = result["choices"][0]["text"].strip()
-    return answer, model_type
+    return result["choices"][0]["message"]["content"].strip()

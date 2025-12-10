@@ -79,3 +79,4 @@ frontend/.vite/
 # OS-specific
 .DS_Store
 Thumbs.db
+backup.sh

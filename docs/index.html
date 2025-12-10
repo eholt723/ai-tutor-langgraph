@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Tutor – TinyLlama + LoRA Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #111827;
+      background-color: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .app {
+      max-width: 960px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+
+    .status {
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .status-online {
+      color: #166534;
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+    }
+
+    .status-offline {
+      color: #991b1b;
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-group {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      overflow: hidden;
+      background: #f9fafb;
+    }
+
+    .toggle-group button {
+      border: none;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: transparent;
+      cursor: pointer;
+      color: #4b5563;
+    }
+
+    .toggle-group button.active {
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: #374151;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      max-height: 260px;
+      resize: vertical;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font: inherit;
+      line-height: 1.4;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    button.primary {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: #111827;
+      color: #f9fafb;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.primary:disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .output {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 12px 14px;
+      max-height: 340px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .output-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .output-meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .output-body {
+      font-size: 0.9rem;
+      color: #111827;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      font-size: 0.8rem;
+      color: #991b1b;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 16px;
+      }
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .actions button.primary {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title-row">
+        <div>
+          <h1>AI Tutor – TinyLlama + LoRA</h1>
+          <div class="subtitle">Compare base TinyLlama vs your fine-tuned tutor model.</div>
+        </div>
+        <div class="badge-row">
+          <span class="badge">Backend: Azure Container Apps</span>
+          <span class="badge">Model: TinyLlama-1.1B (GGUF)</span>
+          <span class="badge">Adapter: LoRA (tutor style)</span>
+          <span id="status-indicator" class="status status-offline">Checking backend...</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="row">
+        <div>
+          <label>Model mode</label>
+          <div class="toggle-group" id="mode-toggle">
+            <button type="button" data-mode="base" class="active">Base model</button>
+            <button type="button" data-mode="finetuned">Fine-tuned tutor</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label for="question-input">Ask a programming question</label>
+        <textarea id="question-input" placeholder="Example: Explain what a variable is and show a short Python example."></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="ask-button" class="primary">
+          <span id="ask-button-label">Ask the tutor</span>
+        </button>
+        <div class="hint">
+          Tip: Try the same question with both modes to see the difference.
+        </div>
+      </div>
+      <div id="error-box" class="error" style="display: none;"></div>
+    </section>
+
+    <section class="output" id="output-panel" style="display: none;">
+      <div class="output-header">
+        <div class="output-title">Tutor answer</div>
+        <div class="output-meta" id="output-meta"></div>
+      </div>
+      <div class="output-body" id="output-body"></div>
+    </section>
+  </div>
+
+  <script>
+    // Backend URL (Azure Container Apps)
+    const API_BASE = "https://tutor-backend.gentlehill-a7c01db9.germanywestcentral.azurecontainerapps.io";
+
+    const statusIndicator = document.getElementById("status-indicator");
+    const modeToggle = document.getElementById("mode-toggle");
+    const askButton = document.getElementById("ask-button");
+    const askButtonLabel = document.getElementById("ask-button-label");
+    const questionInput = document.getElementById("question-input");
+    const errorBox = document.getElementById("error-box");
+    const outputPanel = document.getElementById("output-panel");
+    const outputMeta = document.getElementById("output-meta");
+    const outputBody = document.getElementById("output-body");
+
+    let currentMode = "base";
+
+    async function checkHealth() {
+      try {
+        const res = await fetch(API_BASE + "/health", { method: "GET" });
+        if (!res.ok) {
+          throw new Error("Health check failed");
+        }
+        const data = await res.json().catch(() => ({}));
+        statusIndicator.textContent = "Backend online";
+        statusIndicator.classList.remove("status-offline");
+        statusIndicator.classList.add("status-online");
+      } catch (err) {
+        statusIndicator.textContent = "Backend offline";
+        statusIndicator.classList.remove("status-online");
+        statusIndicator.classList.add("status-offline");
+      }
+    }
+
+    // Mode toggle
+    modeToggle.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-mode]");
+      if (!btn) return;
+      const mode = btn.getAttribute("data-mode");
+
+      currentMode = mode;
+
+      for (const child of modeToggle.querySelectorAll("button")) {
+        child.classList.toggle("active", child === btn);
+      }
+    });
+
+    function setLoading(isLoading) {
+      askButton.disabled = isLoading;
+      askButtonLabel.textContent = isLoading ? "Thinking..." : "Ask the tutor";
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = "block";
+    }
+
+    function clearError() {
+      errorBox.textContent = "";
+      errorBox.style.display = "none";
+    }
+
+    async function callTutor() {
+      clearError();
+      outputPanel.style.display = "none";
+
+      const question = questionInput.value.trim();
+      if (!question) {
+        showError("Please enter a question first.");
+        return;
+      }
+
+      const useFinetuned = currentMode === "finetuned";
+
+      const payload = {
+        question,
+        use_finetuned: useFinetuned,
+        use_rag: false
+      };
+
+      setLoading(true);
+
+      try {
+        const res = await fetch(API_BASE + "/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("Request failed with status " + res.status);
+        }
+
+        const data = await res.json();
+
+        const modelType = data.model_type || (useFinetuned ? "finetuned" : "base");
+        const usedRag = data.used_rag ? "RAG: on" : "RAG: off";
+
+        outputMeta.textContent = `Model: ${modelType} · ${usedRag}`;
+        outputBody.textContent = data.answer || "(No answer returned)";
+        outputPanel.style.display = "flex";
+      } catch (err) {
+        console.error(err);
+        showError("There was an error calling the tutor API. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    askButton.addEventListener("click", () => {
+      callTutor();
+    });
+
+    questionInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        callTutor();
+      }
+    });
+
+    // Initial health check on page load
+    checkHealth();
+  </script>
+</body>
+</html>

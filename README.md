@@ -1,26 +1,28 @@
-# AI Tutor LangGraph Pipeline
+# AI Tutor – TinyLlama + LoRA Backend (with optional LangGraph Pipeline)
 
-This project implements an end-to-end AI Tutor workflow featuring fine-tuning, evaluation, RAG, and a LangGraph-based orchestration layer. The system is designed to demonstrate a complete ML pipeline during a live demo while keeping all heavy computations offline and pre-processed.
+This project implements a lightweight AI Tutor system capable of running entirely on modest hardware while also supporting cloud deployment.  
+The system includes fine-tuning (LoRA), evaluation utilities, and a FastAPI backend powered by **TinyLlama running through llama.cpp (GGUF)**.
 
-The workflow includes:
-- Preparing a small public educational dataset.
-- Fine-tuning a small model using QLoRA (performed offline once).
-- Loading base and fine-tuned weights for comparison.
-- Running evaluation on a tiny test set for live demonstration.
-- Building and loading a RAG index from reference materials.
-- A LangGraph workflow that stitches together all pipeline steps.
-- Optional lightweight web UI and a terminal-based demo.
+A quantized TinyLlama model and a matching LoRA adapter power the *tutor-style* responses.  
+The backend is deployed using **Azure Container Apps**, which provides auto-scale-to-zero for near-free hosting on a student subscription.
 
-The project is designed to run locally on modest hardware and remain front-end light enough to work on older machines.
+---
 
-## Goals
+## 🔍 Current Phase (Live Demo Architecture)
 
-1. Demonstrate an applied ML workflow: fine-tuning, evaluation, and retrieval.
-2. Provide a reproducible local inference and RAG pipeline.
-3. Use LangGraph to make the workflow modular and observable.
-4. Offer both a terminal demo and an optional web UI for interviews.
-5. Keep the frontend minimal and mobile-friendly.
+The deployed live system uses:
 
-## Repository Structure (High Level)
+- **TinyLlama-1.1B Chat (GGUF format)**
+- **Custom fine-tuned LoRA adapter** (converted to GGUF)
+- **llama.cpp inference backend** for fast CPU-only generation
+- **FastAPI** service providing:
+  - `/chat`
+  - `/health`
+- Deployment on **Azure Container Apps**
+- Comparison mode: **base vs fine-tuned tutor**
 
-# ai-tutor-langgraph
+No LangGraph workflow is active in Phase 1.  
+RAG is reserved for Phase 2.
+
+**Phase 1 inference flow:**
+

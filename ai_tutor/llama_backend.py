@@ -72,18 +72,26 @@ def generate_llama_answer(
         llm = get_finetuned_model()
         model_type = "finetuned-llama-lora"
 
+        # Enforce the 3-step tutor structure
         system = (
-            "You are a patient programming tutor for beginners. "
-            "Use clear, step-by-step explanations, plain language, and at most one short code example."
+            "You are a patient programming tutor for beginners.\n"
+            "For every answer, ALWAYS use this exact 3-part structure:\n"
+            "1. Core idea: Explain the concept in 1–3 short sentences.\n"
+            "2. Example: Give a short, clear Python code example.\n"
+            "3. Common mistake: Describe one typical beginner mistake and how to avoid it.\n"
+            "Do not add any other sections, introductions, or conclusions. "
+            "Just the three numbered items in order."
         )
+        temperature = 0.5
     else:
         llm = get_base_model()
         model_type = "base-llama"
 
         system = (
             "You are a helpful programming assistant. "
-            "Answer clearly and concisely. Use simple language."
+            "Answer clearly and concisely using simple language."
         )
+        temperature = 0.3
 
     if context:
         prompt = (
@@ -102,7 +110,7 @@ def generate_llama_answer(
     result = llm(
         prompt,
         max_tokens=256,
-        temperature=0.3,
+        temperature=temperature,
         top_p=0.9,
         stop=["Student:", "Tutor:"],
         echo=False,

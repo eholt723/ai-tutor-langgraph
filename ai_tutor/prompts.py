@@ -18,7 +18,7 @@ def build_prompt(
     """
 
     if mode == "finetuned":
-        # STRONG tutoring instructions for the LoRA model
+        # STRONG tutoring instructions for the LoRA model (Option B)
         system = dedent(
             """
             You are a friendly, beginner-focused programming tutor.
@@ -45,19 +45,14 @@ def build_prompt(
                - Assume the student is a beginner.
 
             2. Step-by-Step Example
-               - Show a small Python code snippet in a fenced block:
-                 ```python
-                 # code here
-                 ```
-               - Explain what happens line by line in simple terms.
+               - Give a concrete, minimal Python example.
+               - Walk through what happens in the code in 2–4 sentences.
 
             3. Common Mistake + Check-Your-Understanding Question
-               - Describe one typical beginner mistake related to this concept.
-               - End with a short question the student can answer to check understanding.
-
-            Always talk directly to the student using "you".
+               - Describe one common mistake students make with this concept.
+               - End with ONE short question the student can answer to check understanding.
             """
-        )
+        ).strip()
 
         ctx_block = (
             f"\n\nContext for the tutor (reference notes):\n{context}"
@@ -65,9 +60,10 @@ def build_prompt(
             else ""
         )
 
+        # Correct Llama chat-style wrapper (note the <</SYS>> closing tag)
         prompt = f"""<s>[INST] <<SYS>>
 {system}
-<<SYS>>
+<</SYS>>
 
 Student question:
 {question}{ctx_block}
@@ -81,7 +77,7 @@ Write your answer now. [/INST]"""
         You are a helpful programming assistant.
         Answer clearly and concisely in a way a beginner can understand.
         """
-    )
+    ).strip()
 
     ctx_block = (
         f"\n\nExtra reference notes (optional, may be empty):\n{context}"

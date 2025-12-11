@@ -143,6 +143,13 @@
       border-color: var(--status-offline-border);
     }
 
+    .description {
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+      margin-top: 8px;
+      max-width: 640px;
+    }
+
     .controls {
       display: flex;
       flex-direction: column;
@@ -301,6 +308,13 @@
       white-space: nowrap;
     }
 
+    .footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: var(--subtle-text);
+      text-align: right;
+    }
+
     @media (max-width: 640px) {
       .app {
         padding: 16px;
@@ -332,6 +346,12 @@
           <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
         </div>
       </div>
+      <p class="description">
+        This page lets you compare the raw TinyLlama-1.1B model with a fine-tuned LoRA tutor head.
+        The model is running inside a Docker container on Azure Container Apps with low replica counts,
+        so it may take a moment to spool up after periods of idle time. TinyLlama can be a little quirky,
+        but the fine-tuned tutor should feel more structured and beginner-friendly.
+      </p>
     </header>
 
     <section class="controls">
@@ -355,7 +375,7 @@
           <span id="ask-button-label">Ask the tutor</span>
         </button>
         <div class="hint">
-          Tip: Try the same question with both modes to see the difference.
+          Tip: Press Enter to send. Try the same question with both modes to see the difference.
         </div>
       </div>
       <div id="error-box" class="error" style="display: none;"></div>
@@ -368,6 +388,10 @@
       </div>
       <div class="output-body" id="output-body"></div>
     </section>
+
+    <footer class="footer">
+      Created by Eric Holt
+    </footer>
   </div>
 
   <script>
@@ -389,31 +413,28 @@
 
     // THEME TOGGLE (Dark default)
     (function initTheme() {
-    const saved = localStorage.getItem("theme");
+      const saved = localStorage.getItem("theme");
 
-    if (saved === "light") {
-        // User previously chose light mode
+      if (saved === "light") {
         document.body.classList.remove("dark");
         themeToggle.textContent = "🌙 Dark";
-    } else {
-        // Default OR saved === "dark" → use dark mode
+      } else {
         document.body.classList.add("dark");
         themeToggle.textContent = "☀️ Light";
-    }
+      }
     })();
 
     themeToggle.addEventListener("click", () => {
-    const isDark = document.body.classList.toggle("dark");
+      const isDark = document.body.classList.toggle("dark");
 
-    if (isDark) {
+      if (isDark) {
         themeToggle.textContent = "☀️ Light";
         localStorage.setItem("theme", "dark");
-    } else {
+      } else {
         themeToggle.textContent = "🌙 Dark";
         localStorage.setItem("theme", "light");
-    }
+      }
     });
-
 
     async function checkHealth() {
       try {
@@ -513,8 +534,16 @@
       callTutor();
     });
 
+    // Press Enter to submit (Shift+Enter for newline)
     questionInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      if (
+        e.key === "Enter" &&
+        !e.shiftKey &&
+        !e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey
+      ) {
+        e.preventDefault();
         callTutor();
       }
     });

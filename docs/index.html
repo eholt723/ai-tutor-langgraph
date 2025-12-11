@@ -143,11 +143,16 @@
       border-color: var(--status-offline-border);
     }
 
-    .description {
+    /* Top-left description on the page */
+    .page-description {
+      position: fixed;
+      top: 12px;
+      left: 16px;
+      max-width: 440px;
       font-size: 0.85rem;
       color: var(--subtle-text);
-      margin-top: 8px;
-      max-width: 640px;
+      line-height: 1.4;
+      z-index: 10;
     }
 
     .controls {
@@ -308,11 +313,14 @@
       white-space: nowrap;
     }
 
-    .footer {
-      margin-top: auto;
+    /* Bottom-right page footer */
+    .page-footer {
+      position: fixed;
+      right: 16px;
+      bottom: 8px;
       font-size: 0.75rem;
       color: var(--subtle-text);
-      text-align: right;
+      z-index: 10;
     }
 
     @media (max-width: 640px) {
@@ -327,10 +335,28 @@
         width: 100%;
         justify-content: center;
       }
+      .page-description {
+        position: static;
+        margin-bottom: 12px;
+      }
+      .page-footer {
+        position: static;
+        text-align: right;
+        width: 100%;
+        margin-top: 12px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Top-left description -->
+  <div class="page-description">
+    This page lets you compare the raw TinyLlama-1.1B model with a fine-tuned LoRA tutor head.
+    The model is running inside a Docker container on Azure Container Apps with low replica counts,
+    so it may take a moment to spool up after periods of idle time. TinyLlama can be a little quirky,
+    but the fine-tuned tutor should feel more structured and beginner-friendly.
+  </div>
+
   <div class="app">
     <header class="header">
       <div class="title-row">
@@ -346,12 +372,6 @@
           <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
         </div>
       </div>
-      <p class="description">
-        This page lets you compare the raw TinyLlama-1.1B model with a fine-tuned LoRA tutor head.
-        The model is running inside a Docker container on Azure Container Apps with low replica counts,
-        so it may take a moment to spool up after periods of idle time. TinyLlama can be a little quirky,
-        but the fine-tuned tutor should feel more structured and beginner-friendly.
-      </p>
     </header>
 
     <section class="controls">
@@ -388,10 +408,11 @@
       </div>
       <div class="output-body" id="output-body"></div>
     </section>
+  </div>
 
-    <footer class="footer">
-      Created by Eric Holt
-    </footer>
+  <!-- Bottom-right footer -->
+  <div class="page-footer">
+    Created by Eric Holt
   </div>
 
   <script>

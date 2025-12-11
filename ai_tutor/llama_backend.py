@@ -72,70 +72,125 @@ def _strip_meta(text: str) -> str:
 
     remove_anywhere = [
         "<<USER>>",
+        "<<SYS>>",
+        "<</SYS>>",
+        "[/SYS]",
+        "[INST]",
+        "[/INST]",
         "Tutor answer:",
         "Student answer:",
-        "<<SYS>>",
-        "Write your answer now.",
+        "Tutor question:",
+        # Old training headers that sometimes get echoed
+        "Always answer the same three clear questions in exactly three numbers.",
         "Use plain language that students can understand without Google.",
         "Always use plain language that students can understand without Google.",
         "appropriate for a first programming course.",
         "Talk directly to the student and avoid using emojis or abbreviations.",
         "Talk directly to the student and keep paragraphs short.",
+        "clear student example",
     ]
 
     for phrase in remove_anywhere:
         t = t.replace(phrase, "").strip()
 
+    # Remove empty lines
     lines = [ln for ln in t.splitlines() if ln.strip()]
     return "\n".join(lines).strip()
 
 
+def _split_numbered_sections(text: str) -> list[str]:
+    """
+    Split text into sections starting at any '1.', '2.', '3.' occurrence,
+    even if they appear mid-line (e.g., '1. ... 2. ... 3. ...').
+    """
+    t = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Find any "digit." followed by space as a boundary
+    matches = list(re.finditer(r"(\d+)\.\s+", t))
+    if not matches:
+        return [t.strip()] if t.strip() else []
+
+    sections: list[str] = []
+    for i, m in enumerate(matches):
+        start = m.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(t)
+        chunk = t[start:end].strip()
+        if chunk:
+            sections.append(chunk)
+
+    return sections
+
+
 def _restructure_finetuned(text: str) -> str:
     """
-    Try to enforce the 1/2/3 tutor structure on the finetuned answer.
+    Take the model's cleaned finetuned text and reshape it into:
 
-    We look for segments starting with "1.", "2.", "3." and, if found,
-    rebuild them under the standard headings.
+    1. Core Idea
+    ...
+    2. Step-by-Step Example
+    ...
+    3. Common Mistake + Check-Your-Understanding Question
     """
-    pattern = r"(?:^|\n)([123]\.)\s"
-    matches = list(re.finditer(pattern, text))
-    if len(matches) < 3:
-        return text.strip()
+    cleaned = text.strip()
+    if not cleaned:
+        return cleaned
 
-    chunks: dict[str, str] = {}
-    for i, m in enumerate(matches):
-        num = m.group(1)[0]  # "1", "2", or "3"
-        start = m.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        chunk = text[start:end].strip()
-        chunks[num] = chunk
+    sections = _split_numbered_sections(cleaned)
 
-    core = chunks.get("1", "").strip()
-    example = chunks.get("2", "").strip()
-    mistake = chunks.get("3", "").strip()
+    # If we didn't get at least 2 sections, just return cleaned text
+    if len(sections) < 2:
+        return cleaned
 
-    parts = []
-    if core:
-        parts.append(f"1. Core Idea\n{core}")
-    if example:
-        parts.append(f"2. Step-by-Step Example\n{example}")
-    if mistake:
-        parts.append(
-            "3. Common Mistake + Check-Your-Understanding Question\n" + mistake
-        )
+    headings = [
+        "Core Idea",
+        "Step-by-Step Example",
+        "Common Mistake + Check-Your-Understanding Question",
+    ]
 
-    if not parts:
-        return text.strip()
+    formatted_parts: list[str] = []
 
-    return "\n\n".join(parts).strip()
+    for idx in range(min(3, len(sections))):
+        raw_sec = sections[idx]
+
+        # Strip leading "1.", "2.", "3." from the first line
+        lines = raw_sec.splitlines()
+        if lines:
+            lines[0] = re.sub(r"^\s*\d+\.\s*", "", lines[0]).strip()
+        body = "\n".join(lines).strip()
+
+        # For section 3, ensure there's at least one question
+        if idx == 2 and body and "?" not in body:
+            body = (
+                body
+                + "\n\nCheck-your-understanding question: "
+                  "In your own words, why is this concept important in programming?"
+            ).strip()
+
+        if not body:
+            continue
+
+        heading = headings[idx]
+        formatted_parts.append(f"{idx + 1}. {heading}\n{body}")
+
+    if not formatted_parts:
+        return cleaned
+
+    result = "\n\n".join(formatted_parts).strip()
+
+    # Clean up any leftover weird trailing fragments like half-sentences
+    result = re.sub(r"\s+Check your answer by comparing.*?$", "", result, flags=re.IGNORECASE | re.DOTALL).strip()
+
+    # Normalize double spaces
+    while "  " in result:
+        result = result.replace("  ", " ")
+
+    return result
 
 
 # -------------------------------------------------------------------
 # Main generation
 # -------------------------------------------------------------------
 
-
-from typing import Tuple, Optional
 
 def generate_answer(
     question: str,
@@ -180,20 +235,14 @@ def generate_answer(
 
         cleaned = _strip_meta(raw_text)
         structured = _restructure_finetuned(cleaned)
+        if not structured.strip():
+            structured = cleaned or raw_text
 
         return structured.strip(), "finetuned-llama-lora"
 
-    # ---------- BASE PATH (CHAT FORMAT, NO RESTRICTIONS) ----------
+    # ---------- BASE PATH (simple completion via shared prompt builder) ----------
     model = get_base_model()
-
-    base_prompt = f"""
-        <s>[INST] <<SYS>>
-        You are a helpful programming assistant.
-        Answer clearly and concisely.
-        <<SYS>>
-        {question}
-        [/INST]
-        """
+    base_prompt = build_prompt(question=question, mode="base", context=context)
 
     output = model(
         base_prompt,
@@ -201,7 +250,7 @@ def generate_answer(
         temperature=0.7,
         top_p=0.9,
         repeat_penalty=1.1,
-        stop=["</s>", "[/INST]"],
+        stop=["</s>"],
     )
 
     raw_text = output["choices"][0]["text"] or ""

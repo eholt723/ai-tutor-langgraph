@@ -351,18 +351,38 @@
 <body>
   <!-- Top-left description -->
   <div class="page-description">
-    This page lets you compare the raw TinyLlama-1.1B model with a fine-tuned LoRA tutor head.
-    The model is running inside a Docker container on Azure Container Apps with low replica counts,
-    so it may take a moment to spool up after periods of idle time. TinyLlama can be a little quirky,
-    but the fine-tuned tutor should feel more structured and beginner-friendly.
+    <strong>Note:</strong> The backend is hosted in an Azure Container App with low idle replicas, 
+    so it may take 5-30 seconds to spool up after periods of inactivity.
+
+    <br><br>
+
+    This demo showcases the difference between the unmodified TinyLlama-1.1B model and a custom 
+    LoRA-finetuned variant designed specifically for tutoring. The base model shows how a small LLM 
+    behaves with no guidance—answers may drift, vary in quality, or be overly long. The fine-tuned 
+    tutor model adds structure, clarity, and a consistent teaching style aimed at beginners.
+
+    <br><br>
+
+    Everything here represents <strong>Phase 1</strong> of the project: a minimal, end-to-end AI tutor 
+    running inside a single Docker container deployed to Azure Container Apps using a quantized GGUF 
+    build for efficient CPU inference.
+
+    <br><br>
+
+    <strong>Coming in Phase 2:</strong> A more advanced LangGraph-powered tutoring pipeline with 
+    multi-step reasoning, Retrieval-Augmented Generation (RAG) using curated course materials, a 
+    feedback-driven refinement loop, and expanded evaluation tools. The goal is a more interactive, 
+    context-aware tutoring system that goes beyond single-shot answers and supports real learning 
+    progression.
   </div>
+
 
   <div class="app">
     <header class="header">
       <div class="title-row">
         <div>
           <h1>AI Tutor – TinyLlama + LoRA</h1>
-          <div class="subtitle">Compare base TinyLlama vs your fine-tuned tutor model.</div>
+          <div class="subtitle">Compare base TinyLlama vs fine-tuned model.</div>
         </div>
         <div class="badge-row">
           <span class="badge">Backend: Azure Container Apps</span>

@@ -325,21 +325,32 @@
       inset: 0;
       background: rgba(2, 6, 23, 0.82);
       display: none;
+
+      /* center the modal */
+      align-items: center;
+      justify-content: center;
+
       z-index: 9999;
       padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
     }
 
     .intro-modal {
       width: 100%;
       max-width: 720px;
-      margin: 0 auto;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 16px;
       box-shadow: 0 18px 40px var(--shadow-color);
+
       display: flex;
       flex-direction: column;
+
+      /* Fallback */
       max-height: calc(100vh - 24px);
+      /* Mobile browsers: dynamic viewport height so buttons don't fall off-screen */
+      max-height: calc(100dvh - 24px);
+
       overflow: hidden;
     }
 
@@ -358,17 +369,25 @@
       padding: 12px 16px;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
+
       color: var(--subtle-text);
       font-size: 0.9rem;
       line-height: 1.5;
+
+      /* ensure the content area takes remaining height so actions stay visible */
+      flex: 1 1 auto;
     }
 
     .intro-content strong { color: var(--text-color); }
 
     .intro-actions {
       padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
       border-top: 1px solid var(--panel-border);
       background: var(--panel-bg);
+
+      /* keep it pinned inside the modal even while content scrolls */
+      flex: 0 0 auto;
     }
 
     .intro-actions button.primary {
@@ -446,8 +465,14 @@
 
     This demo showcases the difference between the unmodified TinyLlama-1.1B model and a custom
     LoRA-finetuned variant designed specifically for tutoring. The base model shows how a small LLM
-    behaves with no guidance—answers may drift, vary in quality, or be overly long. The fine-tuned
+    behaves with no guidance — answers may drift, vary in quality, or be overly long. The fine-tuned
     tutor model adds structure, clarity, and a consistent teaching style aimed at beginners.
+
+    <br><br>
+
+    Because this is a 1.1B-parameter model, even with careful prompting and fine-tuning it can still behave
+    like a “tiny” model: occasional inaccuracies, repetition, or uneven depth are expected. This demo is meant
+    to show how much LoRA can improve consistency, not to claim perfect results.
 
     <br><br>
 
@@ -570,7 +595,7 @@
 
       introContent.innerHTML = pageDescription.innerHTML;
 
-      introOverlay.style.display = "block";
+      introOverlay.style.display = "flex";
       introOverlay.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
 

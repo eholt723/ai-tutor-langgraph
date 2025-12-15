@@ -5,8 +5,8 @@
   <title>AI Tutor - TinyLlama + LoRA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/png" href="glow_round_favicon.png">
-
   <style>
+    /* Theme variables */
     :root {
       --bg-color: #f3f4f6;
       --text-color: #111827;
@@ -55,42 +55,12 @@
       margin: 0;
       min-height: 100vh;
       display: flex;
+      align-items: stretch;
       justify-content: center;
       padding: 32px 16px;
-      background: var(--bg-color);
+      background-color: var(--bg-color);
       color: var(--text-color);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    /* ---------- PAGE DESCRIPTION (FIXED ONLY ON LARGE DESKTOPS) ---------- */
-
-    .page-description {
-      position: static;
-      max-width: 960px;
-      width: 100%;
-      margin: 0 auto 16px auto;
-      font-size: 0.85rem;
-      color: var(--subtle-text);
-      line-height: 1.4;
-      background: var(--badge-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 12px 14px;
-    }
-
-    @media (min-width: 1400px) and (min-height: 800px) {
-      .page-description {
-        position: fixed;
-        top: 12px;
-        left: 16px;
-        max-width: 440px;
-        margin: 0;
-        background: transparent;
-        border: none;
-        padding: 0;
-        border-radius: 0;
-        z-index: 10;
-      }
     }
 
     .app {
@@ -125,6 +95,7 @@
     h1 {
       font-size: 1.4rem;
       margin: 0;
+      color: var(--text-color);
     }
 
     .subtitle {
@@ -137,6 +108,7 @@
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
+      margin-top: 4px;
     }
 
     .badge {
@@ -146,34 +118,68 @@
       border: 1px solid var(--badge-border);
       background: var(--badge-bg);
       color: var(--badge-text);
+      white-space: nowrap;
     }
 
     .status {
       font-size: 0.8rem;
       padding: 2px 8px;
       border-radius: 999px;
+      border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .status-online {
-      background: var(--status-online-bg);
       color: var(--status-online-text);
-      border: 1px solid var(--status-online-border);
+      background: var(--status-online-bg);
+      border-color: var(--status-online-border);
     }
 
     .status-offline {
-      background: var(--status-offline-bg);
       color: var(--status-offline-text);
-      border: 1px solid var(--status-offline-border);
+      background: var(--status-offline-bg);
+      border-color: var(--status-offline-border);
     }
 
-    .theme-toggle {
-      font-size: 0.8rem;
-      padding: 3px 10px;
-      border-radius: 999px;
+    /* ---------------- FIX: prevent laptop overlap ----------------
+       Default: keep description in normal flow so it can't overlay .app
+       Large desktop: restore pinned top-left behavior
+    */
+    .page-description {
+      position: static;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto 16px auto;
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+      line-height: 1.4;
+      z-index: auto;
+
+      /* Optional but helps it look intentional when stacked */
+      background: var(--badge-bg);
       border: 1px solid var(--panel-border);
-      background: transparent;
-      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 14px;
     }
+
+    @media (min-width: 1400px) and (min-height: 800px) {
+      .page-description {
+        position: fixed;
+        top: 12px;
+        left: 16px;
+        max-width: 440px;
+        width: auto;
+        margin: 0;
+        z-index: 10;
+
+        /* Restore original "floating text" style on big screens */
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
+    }
+    /* ---------------- end FIX ---------------- */
 
     .controls {
       display: flex;
@@ -183,10 +189,10 @@
 
     .row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
       flex-wrap: wrap;
       gap: 12px;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .toggle-group {
@@ -194,14 +200,15 @@
       border-radius: 999px;
       border: 1px solid var(--panel-border);
       overflow: hidden;
+      background: var(--badge-bg);
     }
 
     .toggle-group button {
-      padding: 6px 12px;
       border: none;
+      padding: 6px 12px;
+      font-size: 0.85rem;
       background: transparent;
       cursor: pointer;
-      font-size: 0.85rem;
       color: var(--subtle-text);
     }
 
@@ -210,23 +217,42 @@
       color: var(--button-text);
     }
 
+    label {
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
     textarea {
       width: 100%;
       min-height: 120px;
+      max-height: 260px;
+      resize: vertical;
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--panel-border);
+      font: inherit;
+      line-height: 1.4;
       background: var(--textarea-bg);
       color: var(--text-color);
-      resize: vertical;
+    }
+
+    textarea::placeholder { color: var(--subtle-text); }
+
+    textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
     }
 
     .actions {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
       flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
     }
 
     button.primary {
@@ -234,9 +260,18 @@
       border: none;
       padding: 8px 20px;
       font-size: 0.9rem;
+      font-weight: 500;
       background: var(--button-bg);
       color: var(--button-text);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.primary:disabled {
+      opacity: 0.65;
+      cursor: default;
     }
 
     .hint {
@@ -251,34 +286,248 @@
       padding: 12px 14px;
       max-height: 340px;
       overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .output-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .output-meta {
+      font-size: 0.8rem;
+      color: var(--subtle-text);
+    }
+
+    .output-body {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      white-space: pre-wrap;
+    }
+
+    .error {
+      font-size: 0.8rem;
+      color: #fecaca;
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-top: 4px;
+    }
+
+    .theme-toggle {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--subtle-text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Bottom-right page footer */
     .page-footer {
       position: fixed;
       right: 16px;
       bottom: 8px;
       font-size: 0.75rem;
       color: var(--subtle-text);
+      z-index: 10;
     }
 
+    /* ---------------- Mobile popup (mobile only) ---------------- */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.82);
+      display: none;
+
+      /* center the modal */
+      align-items: center;
+      justify-content: center;
+
+      z-index: 9999;
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .intro-modal {
+      width: 100%;
+      max-width: 720px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px var(--shadow-color);
+
+      display: flex;
+      flex-direction: column;
+
+      /* Fallback */
+      max-height: calc(100vh - 24px);
+      /* Mobile browsers: dynamic viewport height so buttons don't fall off-screen */
+      max-height: calc(100dvh - 24px);
+
+      overflow: hidden;
+    }
+
+    .intro-header {
+      padding: 14px 16px 10px 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .intro-title {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    .intro-content {
+      padding: 12px 16px;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+
+      color: var(--subtle-text);
+      font-size: 0.9rem;
+      line-height: 1.5;
+
+      /* ensure the content area takes remaining height so actions stay visible */
+      flex: 1 1 auto;
+    }
+
+    .intro-content strong { color: var(--text-color); }
+
+    .intro-actions {
+      padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+
+      /* keep it pinned inside the modal even while content scrolls */
+      flex: 0 0 auto;
+    }
+
+    .intro-actions button.primary {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 18px;
+    }
+
+    /* ---------------- Mobile layout fixes ---------------- */
     @media (max-width: 900px) {
-      .page-description { display: none; }
-      .actions { flex-direction: column; }
-      button.primary { width: 100%; }
+      body {
+        padding: 14px 12px;
+        padding-bottom: 44px; /* keep content clear of fixed footer */
+      }
+
+      .app {
+        padding: 16px;
+        gap: 18px;
+      }
+
+      /* Hide the left-side description on mobile */
+      .page-description {
+        display: none;
+      }
+
+      /* Stack title area cleanly */
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      /* WRAP these on mobile (no cutoff) */
+      .badge-row {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .badge,
+      .status,
+      .theme-toggle {
+        white-space: normal; /* allow wrapping on mobile only */
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .actions button.primary {
+        width: 100%;
+        justify-content: center;
+      }
+
+      textarea {
+        min-height: 140px;
+      }
+
+      /* Footer stays bottom-right on mobile too */
+      .page-footer {
+        position: fixed;
+        right: 16px;
+        bottom: 8px;
+      }
     }
   </style>
 </head>
-
 <body>
-  <div class="page-description">
+  <!-- Top-left description (desktop only / now stacked on laptop) -->
+  <div class="page-description" id="page-description">
     <strong>Note:</strong> The backend is hosted in an Azure Container App with low idle replicas,
-    so it may take 5–30 seconds to spool up after inactivity.
+    so it may take 5-30 seconds to spool up after periods of inactivity.
+
     <br><br>
-    This demo compares base TinyLlama vs a LoRA-fine-tuned tutor model.
+
+    This demo showcases the difference between the unmodified TinyLlama-1.1B model and a custom
+    LoRA-finetuned variant designed specifically for tutoring. The base model shows how a small LLM
+    behaves with no guidance — answers may drift, vary in quality, or be overly long. The fine-tuned
+    tutor model adds structure, clarity, and a consistent teaching style aimed at beginners.
+
     <br><br>
-    <strong>Phase 1:</strong> Single-container CPU inference using GGUF + LoRA.
+
+    Because this is a 1.1B-parameter model, even with careful prompting and fine-tuning it can still behave
+    like a “tiny” model: occasional inaccuracies, repetition, or uneven depth are expected. This demo is meant
+    to show how much LoRA can improve consistency, not to claim perfect results.
+
     <br><br>
-    <strong>Phase 2:</strong> LangGraph, RAG, multi-step tutoring, and evaluation tooling.
+
+    Everything here represents <strong>Phase 1</strong> of the project: a minimal, end-to-end AI tutor
+    running inside a single Docker container deployed to Azure Container Apps using a quantized GGUF
+    build for efficient CPU inference.
+
+    <br><br>
+
+    <strong>Coming in Phase 2:</strong> A more advanced LangGraph-powered tutoring pipeline with
+    multi-step reasoning, Retrieval-Augmented Generation (RAG) using curated course materials, a
+    feedback-driven refinement loop, and expanded evaluation tools. The goal is a more interactive,
+    context-aware tutoring system that goes beyond single-shot answers and supports real learning
+    progression.
+  </div>
+
+  <!-- Mobile one-time-per-visit popup -->
+  <div class="intro-overlay" id="intro-overlay" aria-hidden="true">
+    <div class="intro-modal" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+      <div class="intro-header">
+        <h2 class="intro-title" id="intro-title">Project Overview</h2>
+      </div>
+      <div class="intro-content" id="intro-content"></div>
+      <div class="intro-actions">
+        <button class="primary" type="button" id="intro-continue">Continue</button>
+      </div>
+    </div>
   </div>
 
   <div class="app">
@@ -286,14 +535,14 @@
       <div class="title-row">
         <div>
           <h1>AI Tutor – TinyLlama + LoRA</h1>
-          <div class="subtitle">Compare base vs fine-tuned tutor behavior</div>
+          <div class="subtitle">Compare base TinyLlama vs fine-tuned model.</div>
         </div>
         <div class="badge-row">
-          <span class="badge">Azure Container Apps</span>
-          <span class="badge">TinyLlama-1.1B</span>
-          <span class="badge">LoRA Adapter</span>
-          <span class="status status-offline" id="status-indicator">Checking backend...</span>
-          <button class="theme-toggle" id="theme-toggle">🌙 Dark</button>
+          <span class="badge">Backend: Azure Container Apps</span>
+          <span class="badge">Model: TinyLlama-1.1B (GGUF)</span>
+          <span class="badge">Adapter: LoRA (tutor style)</span>
+          <span id="status-indicator" class="status status-offline">Checking backend...</span>
+          <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
         </div>
       </div>
     </header>
@@ -303,25 +552,226 @@
         <div>
           <label>Model mode</label>
           <div class="toggle-group" id="mode-toggle">
-            <button data-mode="base" class="active">Base</button>
-            <button data-mode="finetuned">Fine-tuned</button>
+            <button type="button" data-mode="base" class="active">Base model</button>
+            <button type="button" data-mode="finetuned">Fine-tuned tutor</button>
           </div>
         </div>
       </div>
 
-      <textarea id="question-input" placeholder="Ask a programming question…"></textarea>
+      <div>
+        <label for="question-input">Ask a programming question</label>
+        <textarea id="question-input" placeholder="Example: Explain what a variable is and show a short Python example."></textarea>
+      </div>
 
       <div class="actions">
-        <button class="primary" id="ask-button">Ask the tutor</button>
-        <div class="hint">Try the same question in both modes</div>
+        <button id="ask-button" class="primary">
+          <span id="ask-button-label">Ask the tutor</span>
+        </button>
+        <div class="hint">
+          Tip: Try the same question with both modes to see the difference.
+        </div>
       </div>
+      <div id="error-box" class="error" style="display: none;"></div>
     </section>
 
-    <section class="output" id="output-panel" style="display:none;">
-      <pre id="output-body"></pre>
+    <section class="output" id="output-panel" style="display: none;">
+      <div class="output-header">
+        <div class="output-title">Tutor answer</div>
+        <div class="output-meta" id="output-meta"></div>
+      </div>
+      <div class="output-body" id="output-body"></div>
     </section>
   </div>
 
-  <div class="page-footer">Created by Eric Holt</div>
+  <!-- Bottom-right footer -->
+  <div class="page-footer">
+    Created by Eric Holt
+  </div>
+
+  <script>
+    // Backend URL (Azure Container Apps)
+    const API_BASE = "https://tutor-backend.gentlehill-a7c01db9.germanywestcentral.azurecontainerapps.io";
+
+    const statusIndicator = document.getElementById("status-indicator");
+    const modeToggle = document.getElementById("mode-toggle");
+    const askButton = document.getElementById("ask-button");
+    const askButtonLabel = document.getElementById("ask-button-label");
+    const questionInput = document.getElementById("question-input");
+    const errorBox = document.getElementById("error-box");
+    const outputPanel = document.getElementById("output-panel");
+    const outputMeta = document.getElementById("output-meta");
+    const outputBody = document.getElementById("output-body");
+    const themeToggle = document.getElementById("theme-toggle");
+
+    const introOverlay = document.getElementById("intro-overlay");
+    const introContent = document.getElementById("intro-content");
+    const introContinue = document.getElementById("intro-continue");
+    const pageDescription = document.getElementById("page-description");
+
+    let currentMode = "base";
+
+    function isMobileLayout() {
+      return window.matchMedia("(max-width: 900px)").matches;
+    }
+
+    // MOBILE popup: show once per visit/tab (sessionStorage), not on desktop
+    (function initMobileIntro() {
+      if (!isMobileLayout()) return;
+
+      const seenThisSession = sessionStorage.getItem("phase1_notice_seen_session_v1");
+      if (seenThisSession === "true") return;
+
+      introContent.innerHTML = pageDescription.innerHTML;
+
+      introOverlay.style.display = "flex";
+      introOverlay.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+
+      introContinue.addEventListener("click", () => {
+        sessionStorage.setItem("phase1_notice_seen_session_v1", "true");
+        introOverlay.style.display = "none";
+        introOverlay.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      });
+    })();
+
+    // THEME TOGGLE (Dark default)
+    (function initTheme() {
+      const saved = localStorage.getItem("theme");
+
+      if (saved === "light") {
+        document.body.classList.remove("dark");
+        themeToggle.textContent = "🌙 Dark";
+      } else {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀️ Light";
+      }
+    })();
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.toggle("dark");
+
+      if (isDark) {
+        themeToggle.textContent = "☀️ Light";
+        localStorage.setItem("theme", "dark");
+      } else {
+        themeToggle.textContent = "🌙 Dark";
+        localStorage.setItem("theme", "light");
+      }
+    });
+
+    async function checkHealth() {
+      try {
+        const res = await fetch(API_BASE + "/health", { method: "GET" });
+        if (!res.ok) {
+          throw new Error("Health check failed");
+        }
+        await res.json().catch(() => ({}));
+        statusIndicator.textContent = "Backend online";
+        statusIndicator.classList.remove("status-offline");
+        statusIndicator.classList.add("status-online");
+      } catch (err) {
+        statusIndicator.textContent = "Backend offline";
+        statusIndicator.classList.remove("status-online");
+        statusIndicator.classList.add("status-offline");
+      }
+    }
+
+    // Mode toggle
+    modeToggle.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-mode]");
+      if (!btn) return;
+      const mode = btn.getAttribute("data-mode");
+
+      currentMode = mode;
+
+      for (const child of modeToggle.querySelectorAll("button")) {
+        child.classList.toggle("active", child === btn);
+      }
+    });
+
+    function setLoading(isLoading) {
+      askButton.disabled = isLoading;
+      askButtonLabel.textContent = isLoading ? "Thinking..." : "Ask the tutor";
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = "block";
+    }
+
+    function clearError() {
+      errorBox.textContent = "";
+      errorBox.style.display = "none";
+    }
+
+    async function callTutor() {
+      clearError();
+      outputPanel.style.display = "none";
+
+      const question = questionInput.value.trim();
+      if (!question) {
+        showError("Please enter a question first.");
+        return;
+      }
+
+      const useFinetuned = currentMode === "finetuned";
+
+      const payload = {
+        question,
+        use_finetuned: useFinetuned,
+        use_rag: false
+      };
+
+      setLoading(true);
+
+      try {
+        const res = await fetch(API_BASE + "/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("Request failed with status " + res.status);
+        }
+
+        const data = await res.json();
+
+        const modelType = data.model_type || (useFinetuned ? "finetuned" : "base");
+        const usedRag = data.used_rag ? "RAG: on" : "RAG: off";
+
+        outputMeta.textContent = `Model: ${modelType} · ${usedRag}`;
+        outputBody.textContent = data.answer || "(No answer returned)";
+        outputPanel.style.display = "flex";
+      } catch (err) {
+        console.error(err);
+        showError("There was an error calling the tutor API. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    askButton.addEventListener("click", () => {
+      callTutor();
+    });
+
+    // Press Enter to submit (Shift+Enter for newline)
+    questionInput.addEventListener("keydown", (e) => {
+      if (
+        e.key === "Enter" &&
+        !e.shiftKey &&
+        !e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey
+      ) {
+        e.preventDefault();
+        callTutor();
+      }
+    });
+
+    // Initial health check on page load
+    checkHealth();
+  </script>
 </body>
 </html>

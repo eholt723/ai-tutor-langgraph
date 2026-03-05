@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TypedDict, Optional, Any
-
 from langgraph.graph import StateGraph, END
 
+from ai_tutor.graph.state import GraphState
 from ai_tutor.graph.nodes import (
     load_config_node,
     prepare_data_node,
@@ -14,33 +13,6 @@ from ai_tutor.graph.nodes import (
     build_rag_index_node,
     chat_node,
 )
-
-
-class GraphState(TypedDict, total=False):
-
-    # Config info / metadata
-    config_summary: str
-
-    # Data preview
-    data_preview: str
-
-    # Evaluation
-    eval_summary: str
-
-    # RAG
-    rag_status: str
-
-    # Chat
-    last_question: Optional[str]
-    last_answer_base: Optional[str]
-    last_answer_finetuned: Optional[str]
-    last_answer_with_rag: Optional[str]
-
-    # Internal caches / handles
-    base_model: Any
-    base_tokenizer: Any
-    ft_model: Any
-    ft_tokenizer: Any
 
 
 def build_workflow_app():

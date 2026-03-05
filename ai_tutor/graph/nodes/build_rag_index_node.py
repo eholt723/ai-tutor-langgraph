@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ai_tutor.rag.ingest import ingest_reference_corpus
 from ai_tutor.rag.store import save_vector_store
-from ai_tutor.graph.workflow import GraphState
+from ai_tutor.graph.state import GraphState
 
 
 def build_rag_index_node(state: GraphState) -> GraphState:

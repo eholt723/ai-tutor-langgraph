@@ -19,10 +19,10 @@ venv/
 .idea/
 
 # Data and training artifacts
+# raw/processed/test/live_eval are generated or downloaded — do not commit
+# train/ and val/ contain curated .jsonl files — tracked intentionally
 data/raw/
 data/processed/
-data/train/
-data/val/
 data/test/
 data/live_eval/
 artifacts/logs/
@@ -80,3 +80,7 @@ frontend/.vite/
 .DS_Store
 Thumbs.db
 backup.sh
+
+# Claude
+CLAUDE.md
+.claude/

@@ -1,114 +1,137 @@
-# AI Tutor Backend — TinyLlama + LoRA (Phase 1)  
-### LangGraph-Powered Tutor Pipeline (Phase 2)
+# AI Tutor — TinyLlama + LoRA + LangGraph + RAG
 
-This project implements a lightweight AI Tutor backend capable of running efficiently on modest hardware and scaling seamlessly in the cloud.  
-It features a custom fine-tuned **LoRA adapter**, a quantized **TinyLlama GGUF** model running through **llama.cpp**, and a clean **FastAPI** interface deployed on **Azure Container Apps**.
-
-The system demonstrates ML engineering skills across fine-tuning, model conversion, CPU-optimized inference, Dockerization, and managed cloud deployment.
+A lightweight AI tutor backend capable of running on modest hardware and deploying to the cloud. Built as a full end-to-end ML engineering project covering fine-tuning, quantized inference, retrieval-augmented generation, LangGraph orchestration, and evaluation.
 
 ---
 
-# Phase 1 — Current System (Fully Implemented)
+## Stack
 
-Phase 1 focuses on delivering a **complete, deployable AI tutor backend** using a small but capable model.
+| Layer | Technology |
+|-------|-----------|
+| Model | TinyLlama-1.1B-Chat (GGUF, quantized) |
+| Fine-tuning | QLoRA (offline, `scripts/fine_tune_qlora.py`) |
+| Inference | llama.cpp via `llama-cpp-python` |
+| RAG | sentence-transformers + cosine similarity (custom FAISS-free store) |
+| Orchestration | LangGraph |
+| API | FastAPI |
+| Frontend | GitHub Pages (`docs/index.html`) |
+| Deployment | Azure Container Apps (Docker) |
 
-## Core Features Implemented
+---
 
-### **Model**
-- **TinyLlama-1.1B Chat** converted to **GGUF**
-- **Custom LoRA fine-tuning** trained offline
-- LoRA adapter converted to **GGUF** and applied dynamically in llama.cpp
-- Supports:
-  - **Base model mode**
-  - **Fine-tuned tutor mode**
+## Phase 1 — FastAPI + llama.cpp Backend (Complete)
 
-### **Inference**
-- CPU-optimized inference using **llama.cpp**
-- Fast startup (small model, quantized)
-- Tutor-style answer generation in finetuned mode
+- TinyLlama-1.1B-Chat converted to GGUF and quantized
+- Custom LoRA adapter trained offline with QLoRA and applied at runtime via llama.cpp
+- Two inference modes: base model and fine-tuned tutor mode
+- Structured 3-part tutor answers: Core Idea / Step-by-Step Example / Common Mistake
+- FastAPI backend with `/health` and `/chat` endpoints
+- CORS configured for GitHub Pages frontend
+- Dockerized and deployable to Azure Container Apps
 
-### **Backend API**
-Powered by **FastAPI**, exposing:
+### API
 
 | Endpoint | Description |
-|---------|-------------|
+|----------|-------------|
 | `GET /health` | Health check |
-| `POST /chat` | Main tutoring endpoint (base vs finetuned) |
-
-# Phase 2 — LangGraph Workflow + RAG Pipeline (Coming Soon)
-
-Phase 2 will expand the system from a simple model-inference backend into a full tutoring pipeline, demonstrating orchestration, retrieval, evaluation, and multi-step reasoning using **LangGraph**.
-
-This phase will show how educational AI assistants can move beyond single-shot responses and adopt structured reasoning loops—improving clarity, grounding, and helpfulness.
+| `POST /chat` | Tutoring endpoint — base or fine-tuned mode, optional RAG, optional prompt debug |
 
 ---
 
-## Planned Additions
+## Phase 2 — LangGraph Orchestration + RAG (Implemented)
 
-### 1. LangGraph Tutor Workflow
-A graph-based orchestration system that allows the model to execute multi-step reasoning:
+### LangGraph Pipeline (`cli/run_pipeline.py`)
 
-- Intent classification  
-- Decomposition of complex questions  
-- Lookup of relevant examples or definitions  
-- Draft-and-revise answer loops  
-- Error-checking and correction passes  
+Linear workflow demonstrating multi-step orchestration:
 
-The LangGraph workflow will wrap the model and RAG components into a predictable, testable pipeline.
+```
+load_config → prepare_data → load_models → evaluate → build_rag_index → chat
+```
 
----
+Each step is an isolated LangGraph node passing typed state.
 
-### 2. Retrieval-Augmented Generation (RAG)
-Add a lightweight retrieval layer to give the tutor access to curated reference material.
+### RAG
 
-Planned features:
+- Reference corpus ingested via `ai_tutor/rag/ingest.py`
+- Embedded with `sentence-transformers/all-MiniLM-L6-v2`
+- Stored as a cosine-similarity vector store (no FAISS dependency)
+- Retrieval integrated into the `/chat` endpoint via `use_rag` flag
+- Index built with: `scripts/build_rag_index.py [--rebuild]`
 
-- Preprocessing a small set of educational texts (Python basics, CS fundamentals)  
-- Embedding with `sentence-transformers`  
-- Vector indexing using FAISS  
-- Runtime retrieval inside the LangGraph workflow  
-- Transparent inclusion of retrieved passages in the answer chain  
+### Evaluation
 
-RAG will remain modular so the demo can easily compare:
+API-based evaluation via `scripts/run_eval.py`:
 
-- Model-only  
-- Model + RAG  
-- Model + RAG + LangGraph reasoning  
+- Loads examples from `data/val/val.jsonl`
+- Calls the live `/chat` endpoint for base and fine-tuned answers
+- Lexical overlap scoring + tutor-style bonuses (example present, mistake mentioned)
+- Results saved to `artifacts/eval/eval_results.json`
 
----
-
-### 3. Expanded Evaluation Framework
-Phase 2 adds:
-
-- 20–50 curated evaluation questions  
-- Automatic scoring for clarity and correctness  
-- Side-by-side comparison of:
-  - Base model  
-  - Fine-tuned LoRA model  
-  - LangGraph-enhanced model  
-  - RAG-assisted responses  
+```bash
+# Start server first, then:
+.venv/bin/python scripts/run_eval.py --max-samples 20
+```
 
 ---
 
-### 4. Frontend Enhancements
+## Project Structure
 
-- Toggle between Base / Fine-Tuned / LangGraph modes  
-- Display of retrieved context when RAG is enabled  
-- Model comparison interface for demo purposes  
+```
+ai_tutor/
+  config.py              # Central config (env-driven)
+  llama_backend.py       # llama.cpp inference + prompt cleanup
+  prompts.py             # Prompt templates (base and finetuned modes)
+  data_utils.py          # QAExample dataclass, dataset loaders
+  web/api.py             # FastAPI app
+  rag/
+    ingest.py            # Reference corpus loader
+    store.py             # Vector store build/save/load
+    retriever.py         # Cosine similarity retrieval
+  graph/
+    workflow.py          # LangGraph StateGraph definition
+    nodes/               # One file per pipeline node
+  eval/                  # (eval handled via scripts/run_eval.py)
+
+scripts/
+  fine_tune_qlora.py     # Offline QLoRA fine-tuning
+  build_rag_index.py     # Build/rebuild the RAG vector index
+  run_eval.py            # Evaluation against live API
+
+cli/
+  run_pipeline.py        # Run the full LangGraph pipeline end-to-end
+
+data/
+  train/train.jsonl      # Training data
+  val/val.jsonl          # Evaluation data
+
+docs/
+  index.html             # GitHub Pages frontend
+```
 
 ---
 
-### 5. Optional Extensions
+## Setup
 
-- Voice input/output  
-- Chat history persistence  
-- Live telemetry (token usage, latency, retrieval hits)
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
----
+cp .env.example .env   # set BASE_MODEL_PATH, LORA_ADAPTER_PATH, etc.
+```
 
-## Phase 2 Goals
+## Run
 
-- A complete ML engineering workflow: fine-tuning → RAG → orchestration → evaluation  
-- Real tutor-like behaviors (planning, checking its own work, improving answers)  
-- A clean, cloud-deployable architecture  
-- A compelling technical story for academic, professional, or portfolio presentation
+```bash
+# Start API server
+.venv/bin/python -m uvicorn ai_tutor.web.api:app --host 0.0.0.0 --port 8000
+
+# Build RAG index
+.venv/bin/python scripts/build_rag_index.py
+
+# Run full LangGraph pipeline
+.venv/bin/python cli/run_pipeline.py
+
+# Run evaluation (server must be running)
+.venv/bin/python scripts/run_eval.py
+```

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ai_tutor.data_utils import load_training_dataset
-from ai_tutor.graph.workflow import GraphState
+from ai_tutor.graph.state import GraphState
 
 
 def prepare_data_node(state: GraphState) -> GraphState:

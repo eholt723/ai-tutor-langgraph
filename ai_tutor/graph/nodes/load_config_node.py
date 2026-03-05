@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ai_tutor.config import Config
-from ai_tutor.graph.workflow import GraphState
+from ai_tutor.graph.state import GraphState
 
 
 def load_config_node(state: GraphState) -> GraphState:

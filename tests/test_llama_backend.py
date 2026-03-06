@@ -1,4 +1,32 @@
-from ai_tutor.llama_backend import _restructure_finetuned, _split_numbered_sections, _strip_meta
+from ai_tutor.llama_backend import _normalize_question, _restructure_finetuned, _split_numbered_sections, _strip_meta
+
+
+class TestNormalizeQuestion:
+    def test_expands_whats_contraction(self):
+        assert _normalize_question("what's a loop?") == "What is a loop?"
+
+    def test_capitalizes_first_letter(self):
+        assert _normalize_question("what is a variable?")[0].isupper()
+
+    def test_adds_question_mark(self):
+        result = _normalize_question("what is a function")
+        assert result.endswith("?")
+
+    def test_does_not_double_question_mark(self):
+        result = _normalize_question("What is a class?")
+        assert result.count("?") == 1
+
+    def test_already_formal_unchanged(self):
+        q = "What is a variable in Python?"
+        assert _normalize_question(q) == q
+
+    def test_expands_dont(self):
+        result = _normalize_question("why don't we use global variables?")
+        assert "do not" in result
+
+    def test_strips_whitespace(self):
+        result = _normalize_question("  what's a loop?  ")
+        assert result == "What is a loop?"
 
 
 class TestStripMeta:

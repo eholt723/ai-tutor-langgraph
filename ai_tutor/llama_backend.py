@@ -57,6 +57,49 @@ def get_finetuned_model() -> Llama:
 
 
 # -------------------------------------------------------------------
+# Question normalization
+# -------------------------------------------------------------------
+
+_CONTRACTIONS = {
+    "what's": "What is",
+    "What's": "What is",
+    "how's": "How does",
+    "How's": "How does",
+    "why's": "Why is",
+    "Why's": "Why is",
+    "where's": "Where is",
+    "Where's": "Where is",
+    "who's": "Who is",
+    "Who's": "Who is",
+    "it's": "it is",
+    "It's": "It is",
+    "don't": "do not",
+    "Don't": "Do not",
+    "doesn't": "does not",
+    "Doesn't": "Does not",
+    "can't": "cannot",
+    "Can't": "Cannot",
+    "isn't": "is not",
+    "Isn't": "Is not",
+}
+
+
+def _normalize_question(question: str) -> str:
+    """
+    Expand contractions, capitalize, and ensure a trailing question mark.
+    Keeps the output close to the training distribution (formal full sentences).
+    """
+    q = question.strip()
+    for contraction, expansion in _CONTRACTIONS.items():
+        q = q.replace(contraction, expansion)
+    if q:
+        q = q[0].upper() + q[1:]
+    if q and not q.endswith("?"):
+        q += "?"
+    return q
+
+
+# -------------------------------------------------------------------
 # Finetuned cleaning + restructuring ONLY
 # -------------------------------------------------------------------
 
@@ -208,7 +251,10 @@ def generate_answer(
     if use_finetuned:
         # ---------- FINETUNED PATH ----------
         model = get_finetuned_model()
-        prompt = build_prompt(question=question, mode="finetuned", context=context)
+
+        # Normalize to match training distribution (expand contractions, capitalize)
+        normalized_question = _normalize_question(question)
+        prompt = build_prompt(question=normalized_question, mode="finetuned", context=context)
 
         output = model(
             prompt,
@@ -216,14 +262,15 @@ def generate_answer(
             temperature=0.5,
             top_p=0.9,
             repeat_penalty=1.1,
-            stop=["</s>"],  # avoid [/INST] early cutoffs
+            stop=["</s>"],
             echo=False,
         )
 
         raw_text = output["choices"][0]["text"] or ""
         if not raw_text.strip():
-            # Fallback if llama gives literally nothing
-            raw_text = (
+            # Model returned nothing — return fallback directly, skip restructure
+            # to avoid double-heading artifacts
+            return (
                 "1. Core Idea\n"
                 "I’m sorry, I had trouble generating a detailed answer.\n\n"
                 "2. Step-by-Step Example\n"
@@ -231,7 +278,7 @@ def generate_answer(
                 "3. Common Mistake + Check-Your-Understanding Question\n"
                 "A common issue is giving too little context. What extra detail "
                 "about your question could you add?"
-            )
+            ), "finetuned-llama-lora"
 
         cleaned = _strip_meta(raw_text)
         structured = _restructure_finetuned(cleaned)

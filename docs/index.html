@@ -337,6 +337,30 @@
       white-space: nowrap;
     }
 
+    /* Backend check progress bar */
+    .check-progress {
+      width: 100%;
+      height: 3px;
+      background: var(--panel-border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .check-progress-bar {
+      height: 100%;
+      width: 35%;
+      background: #4f46e5;
+      border-radius: 999px;
+      animation: progress-slide 1.1s ease-in-out infinite;
+    }
+
+    @keyframes progress-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(310%); }
+    }
+
     /* Bottom-right page footer */
     .page-footer {
       position: fixed;
@@ -486,35 +510,34 @@
 <body>
   <!-- Top-left description (desktop only / now stacked on laptop) -->
   <div class="page-description" id="page-description">
-    <strong>Note:</strong> The backend is hosted in an Azure Container App with low idle replicas,
-    so it may take 5-30 seconds to spool up after periods of inactivity.
+    <strong>Note:</strong> The backend is hosted on Azure Container Apps with a low idle replica count,
+    so it may take 5–30 seconds to respond after periods of inactivity.
 
     <br><br>
 
     This demo showcases the difference between the unmodified TinyLlama-1.1B model and a custom
     LoRA-finetuned variant designed specifically for tutoring. The base model shows how a small LLM
-    behaves with no guidance — answers may drift, vary in quality, or be overly long. The fine-tuned
-    tutor model adds structure, clarity, and a consistent teaching style aimed at beginners.
+    behaves with no guidance — answers may drift, vary in quality, or run long. The fine-tuned tutor
+    model adds structure, clarity, and a consistent teaching style aimed at beginners.
 
     <br><br>
 
-    Because this is a 1.1B-parameter model, even with careful prompting and fine-tuning it can still behave
-    like a “tiny” model: occasional inaccuracies, repetition, or uneven depth are expected. This demo is meant
-    to show how much LoRA can improve consistency, not to claim perfect results.
+    Because this is a 1.1B-parameter model, even with careful prompting and fine-tuning it can still
+    behave like a “tiny” model: occasional inaccuracies, repetition, or uneven depth are expected.
+    This demo is meant to show how much LoRA can improve consistency, not to claim perfect results.
 
     <br><br>
 
-    Everything here represents <strong>Phase 1</strong> of the project: a minimal, end-to-end AI tutor
-    running inside a single Docker container deployed to Azure Container Apps using a quantized GGUF
-    build for efficient CPU inference.
+    <strong>Phase 1</strong> is what you're seeing here: a minimal, end-to-end AI tutor running inside
+    a single Docker container on Azure Container Apps, using a quantized GGUF build for efficient CPU
+    inference.
 
     <br><br>
 
-    <strong>Coming in Phase 2:</strong> A more advanced LangGraph-powered tutoring pipeline with
-    multi-step reasoning, Retrieval-Augmented Generation (RAG) using curated course materials, a
-    feedback-driven refinement loop, and expanded evaluation tools. The goal is a more interactive,
-    context-aware tutoring system that goes beyond single-shot answers and supports real learning
-    progression.
+    <strong>Phase 2</strong> is now built: a LangGraph-powered tutoring pipeline with multi-step
+    reasoning, Retrieval-Augmented Generation (RAG) over curated course materials, a feedback-driven
+    refinement loop, and expanded evaluation tooling. The goal is a more interactive, context-aware
+    system that goes beyond single-shot answers and supports real learning progression.
   </div>
 
   <!-- Mobile one-time-per-visit popup -->
@@ -543,6 +566,9 @@
           <span class="badge">Adapter: LoRA (tutor style)</span>
           <span id="status-indicator" class="status status-offline">Checking backend...</span>
           <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
+        </div>
+        <div class="check-progress" id="check-progress">
+          <div class="check-progress-bar"></div>
         </div>
       </div>
     </header>
@@ -602,6 +628,7 @@
     const outputMeta = document.getElementById("output-meta");
     const outputBody = document.getElementById("output-body");
     const themeToggle = document.getElementById("theme-toggle");
+    const checkProgress = document.getElementById("check-progress");
 
     const introOverlay = document.getElementById("intro-overlay");
     const introContent = document.getElementById("intro-content");
@@ -618,7 +645,7 @@
     (function initMobileIntro() {
       if (!isMobileLayout()) return;
 
-      const seenThisSession = sessionStorage.getItem("phase1_notice_seen_session_v1");
+      const seenThisSession = sessionStorage.getItem("phase1_notice_seen_session_v2");
       if (seenThisSession === "true") return;
 
       introContent.innerHTML = pageDescription.innerHTML;
@@ -628,7 +655,7 @@
       document.body.style.overflow = "hidden";
 
       introContinue.addEventListener("click", () => {
-        sessionStorage.setItem("phase1_notice_seen_session_v1", "true");
+        sessionStorage.setItem("phase1_notice_seen_session_v2", "true");
         introOverlay.style.display = "none";
         introOverlay.setAttribute("aria-hidden", "true");
         document.body.style.overflow = "";
@@ -661,6 +688,7 @@
     });
 
     async function checkHealth() {
+      checkProgress.style.display = "block";
       try {
         const res = await fetch(API_BASE + "/health", { method: "GET" });
         if (!res.ok) {
@@ -674,6 +702,8 @@
         statusIndicator.textContent = "Backend offline";
         statusIndicator.classList.remove("status-online");
         statusIndicator.classList.add("status-offline");
+      } finally {
+        checkProgress.style.display = "none";
       }
     }
 

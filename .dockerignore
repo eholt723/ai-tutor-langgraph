@@ -1,4 +1,4 @@
-# Python
+# Python bytecode
 __pycache__/
 *.py[cod]
 *.so
@@ -9,36 +9,38 @@ __pycache__/
 env/
 venv/
 
-# Node / frontend
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-
-# Training artifacts / data / cache
+# Not needed at runtime
+tests/
+scripts/
+cli/
+docs/
 data/
 artifacts/
 logs/
+llama.cpp/
+
+# Training artifacts / caches
 wandb/
 .cache/
 huggingface/
 hf_cache/
 transformers_cache/
 torch_cache/
+.pytest_cache/
 
-# Heavy training models
-models/base_model/
-models/lora_adapter/
-models/hf_base/
+# All model weights — downloaded at container startup from HF Hub
+models/
 
-# GGUF binaries — downloaded at container startup from HF Hub
-models/gguf/
-models/lora_gguf/
-models/rag_index/
+# Dev / config files not needed in image
+*.md
+.gitignore
+.gitattributes
+pyproject.toml
+requirements.txt
+download_prepare_data.py
 
 # Git
 .git/
-.gitignore
 
 # OS cruft
 .DS_Store

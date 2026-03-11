@@ -14,6 +14,9 @@ venv/
 .env.*
 .venv/
 
+# Test cache
+.pytest_cache/
+
 # IDE / editor
 .vscode/
 .idea/

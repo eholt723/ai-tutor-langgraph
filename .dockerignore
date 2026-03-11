@@ -31,6 +31,11 @@ models/base_model/
 models/lora_adapter/
 models/hf_base/
 
+# GGUF binaries — downloaded at container startup from HF Hub
+models/gguf/
+models/lora_gguf/
+models/rag_index/
+
 # Git
 .git/
 .gitignore

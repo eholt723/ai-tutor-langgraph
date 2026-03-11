@@ -3,11 +3,8 @@ uvicorn[standard]
 pydantic>=2
 numpy
 
-# Retrieval / RAG libs you actually use
-# If you know you use any of these, include them; otherwise, comment them out:
-# chromadb
-# sentence-transformers
-# scikit-learn
+# HF Hub — model download at container startup
+huggingface_hub>=0.23.0
 
 # Your config / utilities if they rely on specific libs
 python-dotenv

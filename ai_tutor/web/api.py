@@ -13,6 +13,7 @@ app = FastAPI()
 # Allow GitHub Pages frontend to call the API
 origins = [
     "https://eholt723.github.io",
+    "https://eholt723-ai-tutor.hf.space",
 ]
 
 app.add_middleware(

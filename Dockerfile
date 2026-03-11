@@ -2,20 +2,23 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 
+# Disable all optional llama.cpp features — minimizes compile time significantly
+ENV CMAKE_ARGS="-DGGML_BLAS=OFF -DGGML_CUDA=OFF -DGGML_METAL=OFF \
+    -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_AVX512=OFF \
+    -DGGML_F16C=OFF -DGGML_FMA=OFF"
+
 WORKDIR /app
 
-# musl libc required by the pre-built llama-cpp-python wheel (compiled against Alpine/musl)
-RUN apt-get update && apt-get install -y --no-install-recommends musl \
-    && ldconfig \
-    && ln -sf /usr/lib/x86_64-linux-gnu/libc.musl-x86_64.so.1 /lib/libc.musl-x86_64.so.1 \
+# Minimal build deps — no libopenblas-dev (BLAS is disabled above)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ cmake make \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements-runtime.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir llama-cpp-python==0.3.2 \
-        --find-links https://abetlen.github.io/llama-cpp-python/whl/cpu/llama-cpp-python/
+    && pip install --no-cache-dir llama-cpp-python
 
 COPY . .
 

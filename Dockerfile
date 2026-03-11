@@ -8,7 +8,8 @@ COPY requirements-runtime.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir --prefer-binary llama-cpp-python
+    && pip install --no-cache-dir llama-cpp-python==0.3.2 \
+        --find-links https://abetlen.github.io/llama-cpp-python/whl/cpu/llama-cpp-python/
 
 COPY . .
 

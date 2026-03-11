@@ -26,6 +26,7 @@
       --status-offline-bg: #fef2f2;
       --status-offline-border: #fecaca;
       --status-offline-text: #991b1b;
+      --accent: #4f46e5;
     }
 
     body.dark {
@@ -141,6 +142,32 @@
       border-color: var(--status-offline-border);
     }
 
+    /* Tab nav */
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      padding-bottom: 0;
+      margin-bottom: -1px; /* overlap the border-bottom of .header */
+    }
+
+    .tab-nav button {
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--subtle-text);
+      cursor: pointer;
+    }
+
+    .tab-nav button.active {
+      color: var(--text-color);
+      background: var(--panel-bg);
+      border-color: var(--panel-border);
+      border-bottom-color: var(--panel-bg);
+    }
+
     /* ---------------- FIX: prevent laptop overlap ----------------
        Default: keep description in normal flow so it can't overlay .app
        Large desktop: restore pinned top-left behavior
@@ -243,7 +270,7 @@
 
     textarea:focus {
       outline: none;
-      border-color: #4f46e5;
+      border-color: var(--accent);
       box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
     }
 
@@ -351,7 +378,7 @@
     .check-progress-bar {
       height: 100%;
       width: 35%;
-      background: #4f46e5;
+      background: var(--accent);
       border-radius: 999px;
       animation: progress-slide 1.1s ease-in-out infinite;
     }
@@ -448,6 +475,178 @@
       padding: 10px 18px;
     }
 
+    /* ---------------- About panel ---------------- */
+    .about-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .about-hero {
+      padding: 4px 0 8px 0;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .about-hero h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+      color: var(--text-color);
+    }
+
+    .about-hero p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--subtle-text);
+      line-height: 1.6;
+    }
+
+    .about-section h3 {
+      margin: 0 0 14px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    /* Pipeline flow */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .pipeline-step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .pipeline-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      width: 28px;
+    }
+
+    .pipeline-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--button-bg);
+      color: var(--button-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .pipeline-line {
+      width: 2px;
+      flex: 1;
+      min-height: 18px;
+      background: var(--panel-border);
+      margin: 2px 0;
+    }
+
+    .pipeline-body {
+      padding-bottom: 18px;
+      padding-top: 4px;
+    }
+
+    .pipeline-body strong {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-color);
+      margin-bottom: 2px;
+    }
+
+    .pipeline-body span {
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+      line-height: 1.4;
+    }
+
+    /* Achievement checklist */
+    .achievement-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .achievement-list li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      color: var(--subtle-text);
+      line-height: 1.4;
+    }
+
+    .achievement-list li .check {
+      color: var(--accent);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Tech stack grid */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .stack-card {
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--badge-bg);
+    }
+
+    .stack-card-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 2px;
+    }
+
+    .stack-card-role {
+      font-size: 0.78rem;
+      color: var(--subtle-text);
+      line-height: 1.3;
+    }
+
+    /* About links */
+    .about-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .about-links a.secondary {
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--subtle-text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .about-links a.secondary:hover {
+      color: var(--text-color);
+      border-color: var(--badge-border);
+    }
+
     /* ---------------- Mobile layout fixes ---------------- */
     @media (max-width: 900px) {
       body {
@@ -504,14 +703,28 @@
         right: 16px;
         bottom: 8px;
       }
+
+      .stack-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+
+      .about-links {
+        flex-direction: column;
+      }
+
+      .about-links a.secondary,
+      .about-links button.primary {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
   <!-- Top-left description (desktop only / now stacked on laptop) -->
   <div class="page-description" id="page-description">
-    <strong>Note:</strong> The backend is hosted on Azure Container Apps with a low idle replica count,
-    so it may take 5–30 seconds to respond after periods of inactivity.
+    <strong>Note:</strong> The backend is hosted on Hugging Face Spaces and may take a few seconds
+    to respond if it has been idle.
 
     <br><br>
 
@@ -523,13 +736,13 @@
     <br><br>
 
     Because this is a 1.1B-parameter model, even with careful prompting and fine-tuning it can still
-    behave like a “tiny” model: occasional inaccuracies, repetition, or uneven depth are expected.
+    behave like a "tiny" model: occasional inaccuracies, repetition, or uneven depth are expected.
     This demo is meant to show how much LoRA can improve consistency, not to claim perfect results.
 
     <br><br>
 
     <strong>Phase 1</strong> is what you're seeing here: a minimal, end-to-end AI tutor running inside
-    a single Docker container on Azure Container Apps, using a quantized GGUF build for efficient CPU
+    a single Docker container on Hugging Face Spaces, using a quantized GGUF build for efficient CPU
     inference.
 
     <br><br>
@@ -561,7 +774,7 @@
           <div class="subtitle">Compare base TinyLlama vs fine-tuned model.</div>
         </div>
         <div class="badge-row">
-          <span class="badge">Backend: Azure Container Apps</span>
+          <span class="badge">Backend: HF Spaces</span>
           <span class="badge">Model: TinyLlama-1.1B (GGUF)</span>
           <span class="badge">Adapter: LoRA (tutor style)</span>
           <span id="status-indicator" class="status status-offline">Checking backend...</span>
@@ -571,42 +784,185 @@
           <div class="check-progress-bar"></div>
         </div>
       </div>
+      <div class="tab-nav">
+        <button type="button" id="tab-demo" class="active" onclick="showTab('demo')">Demo</button>
+        <button type="button" id="tab-about" onclick="showTab('about')">About</button>
+      </div>
     </header>
 
-    <section class="controls">
-      <div class="row">
+    <!-- Demo panel -->
+    <div id="demo-panel">
+      <section class="controls">
+        <div class="row">
+          <div>
+            <label>Model mode</label>
+            <div class="toggle-group" id="mode-toggle">
+              <button type="button" data-mode="base" class="active">Base model</button>
+              <button type="button" data-mode="finetuned">Fine-tuned tutor</button>
+            </div>
+          </div>
+        </div>
+
         <div>
-          <label>Model mode</label>
-          <div class="toggle-group" id="mode-toggle">
-            <button type="button" data-mode="base" class="active">Base model</button>
-            <button type="button" data-mode="finetuned">Fine-tuned tutor</button>
+          <label for="question-input">Ask a programming question</label>
+          <textarea id="question-input" placeholder="Example: Explain what a variable is and show a short Python example."></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="ask-button" class="primary">
+            <span id="ask-button-label">Ask the tutor</span>
+          </button>
+          <div class="hint">
+            Tip: Try the same question with both modes to see the difference.
+          </div>
+        </div>
+        <div id="error-box" class="error" style="display: none;"></div>
+      </section>
+
+      <section class="output" id="output-panel" style="display: none;">
+        <div class="output-header">
+          <div class="output-title">Tutor answer</div>
+          <div class="output-meta" id="output-meta"></div>
+        </div>
+        <div class="output-body" id="output-body"></div>
+      </section>
+    </div>
+
+    <!-- About panel -->
+    <div id="about-panel" class="about-panel" style="display: none;">
+
+      <div class="about-hero">
+        <h2>What is this?</h2>
+        <p>
+          An AI tutoring assistant that shows the measurable difference LoRA fine-tuning makes on a
+          small language model. Ask the same programming question to both models and see how training
+          transforms structure, clarity, and teaching quality — using the same 1.1B-parameter base.
+          Built end-to-end: dataset curation, QLoRA fine-tuning, GGUF quantization, FastAPI backend,
+          Docker deployment.
+        </p>
+      </div>
+
+      <div class="about-section">
+        <h3>How It Works</h3>
+        <div class="pipeline">
+          <div class="pipeline-step">
+            <div class="pipeline-left">
+              <div class="pipeline-dot">1</div>
+              <div class="pipeline-line"></div>
+            </div>
+            <div class="pipeline-body">
+              <strong>Question submitted</strong>
+              <span>User types a programming question in the GitHub Pages frontend and selects base or fine-tuned mode.</span>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-left">
+              <div class="pipeline-dot">2</div>
+              <div class="pipeline-line"></div>
+            </div>
+            <div class="pipeline-body">
+              <strong>Backend receives request</strong>
+              <span>FastAPI on Hugging Face Spaces handles the POST /chat call. On first startup, the container pulls GGUF model files from HF Hub.</span>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-left">
+              <div class="pipeline-dot">3</div>
+              <div class="pipeline-line"></div>
+            </div>
+            <div class="pipeline-body">
+              <strong>Input normalization</strong>
+              <span>Contractions are expanded, capitalization is applied, and a trailing question mark is enforced — keeping input close to the training distribution.</span>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-left">
+              <div class="pipeline-dot">4</div>
+              <div class="pipeline-line"></div>
+            </div>
+            <div class="pipeline-body">
+              <strong>llama.cpp inference</strong>
+              <span>Base mode: raw TinyLlama-1.1B GGUF completion. Fine-tuned mode: same base with a LoRA adapter applied, producing structured 3-part tutor answers.</span>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-left">
+              <div class="pipeline-dot">5</div>
+            </div>
+            <div class="pipeline-body">
+              <strong>Answer returned</strong>
+              <span>Fine-tuned answers are post-processed into Core Idea / Step-by-Step Example / Common Mistake format. Base answers are returned as-is.</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <label for="question-input">Ask a programming question</label>
-        <textarea id="question-input" placeholder="Example: Explain what a variable is and show a short Python example."></textarea>
+      <div class="about-section">
+        <h3>What Was Built</h3>
+        <ul class="achievement-list">
+          <li><span class="check">✓</span><span>QLoRA fine-tuning pipeline on a custom CEIS150 introductory programming dataset</span></li>
+          <li><span class="check">✓</span><span>GGUF quantization (4-bit) + LoRA adapter in GGUF format, served via llama.cpp on CPU</span></li>
+          <li><span class="check">✓</span><span>FastAPI backend: input validation, health endpoint, prompt debug mode, CORS for two origins</span></li>
+          <li><span class="check">✓</span><span>Dockerized deployment to Hugging Face Spaces — models downloaded from HF Hub at startup, not baked into the image</span></li>
+          <li><span class="check">✓</span><span>RAG vector store using sentence-transformers and cosine similarity — no FAISS dependency</span></li>
+          <li><span class="check">✓</span><span>LangGraph multi-step pipeline: config → data → model → evaluate → RAG index → chat</span></li>
+          <li><span class="check">✓</span><span>128 tests: unit, parametrized, fixture-based integration, CORS origin allow/deny coverage</span></li>
+          <li><span class="check">✓</span><span>Responsive frontend with dark/light mode, mobile intro overlay, live backend health indicator</span></li>
+        </ul>
       </div>
 
-      <div class="actions">
-        <button id="ask-button" class="primary">
-          <span id="ask-button-label">Ask the tutor</span>
-        </button>
-        <div class="hint">
-          Tip: Try the same question with both modes to see the difference.
+      <div class="about-section">
+        <h3>Tech Stack</h3>
+        <div class="stack-grid">
+          <div class="stack-card">
+            <div class="stack-card-name">TinyLlama-1.1B</div>
+            <div class="stack-card-role">Base model, fine-tuned for tutoring via QLoRA</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">llama.cpp</div>
+            <div class="stack-card-role">Quantized GGUF inference on CPU</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">QLoRA / PEFT</div>
+            <div class="stack-card-role">Offline fine-tuning with LoRA adapters</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">FastAPI</div>
+            <div class="stack-card-role">REST API — /health and /chat endpoints</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">LangGraph</div>
+            <div class="stack-card-role">Multi-step orchestration pipeline</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">sentence-transformers</div>
+            <div class="stack-card-role">Embeddings for the RAG vector store</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">HF Spaces</div>
+            <div class="stack-card-role">Docker deployment, always-on backend</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">HF Hub</div>
+            <div class="stack-card-role">Model hosting (GGUF files)</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">pytest</div>
+            <div class="stack-card-role">128 tests — unit, parametrized, integration</div>
+          </div>
+          <div class="stack-card">
+            <div class="stack-card-name">GitHub Pages</div>
+            <div class="stack-card-role">Static frontend hosting</div>
+          </div>
         </div>
       </div>
-      <div id="error-box" class="error" style="display: none;"></div>
-    </section>
 
-    <section class="output" id="output-panel" style="display: none;">
-      <div class="output-header">
-        <div class="output-title">Tutor answer</div>
-        <div class="output-meta" id="output-meta"></div>
+      <div class="about-links">
+        <button class="primary" type="button" onclick="showTab('demo')">Try the Demo</button>
+        <a class="secondary" href="https://github.com/eholt723/ai-tutor-langgraph" target="_blank" rel="noopener">View on GitHub</a>
       </div>
-      <div class="output-body" id="output-body"></div>
-    </section>
+
+    </div><!-- end about-panel -->
   </div>
 
   <!-- Bottom-right footer -->
@@ -615,8 +971,8 @@
   </div>
 
   <script>
-    // Backend URL (Azure Container Apps)
-    const API_BASE = "https://tutor-backend.gentlehill-a7c01db9.germanywestcentral.azurecontainerapps.io";
+    // Backend URL (Hugging Face Spaces)
+    const API_BASE = "https://eholt723-ai-tutor.hf.space";
 
     const statusIndicator = document.getElementById("status-indicator");
     const modeToggle = document.getElementById("mode-toggle");
@@ -636,6 +992,26 @@
     const pageDescription = document.getElementById("page-description");
 
     let currentMode = "base";
+
+    // Tab switching
+    function showTab(tab) {
+      const demoPanel = document.getElementById("demo-panel");
+      const aboutPanel = document.getElementById("about-panel");
+      const tabDemo = document.getElementById("tab-demo");
+      const tabAbout = document.getElementById("tab-about");
+
+      if (tab === "about") {
+        demoPanel.style.display = "none";
+        aboutPanel.style.display = "flex";
+        tabDemo.classList.remove("active");
+        tabAbout.classList.add("active");
+      } else {
+        demoPanel.style.display = "block";
+        aboutPanel.style.display = "none";
+        tabDemo.classList.add("active");
+        tabAbout.classList.remove("active");
+      }
+    }
 
     function isMobileLayout() {
       return window.matchMedia("(max-width: 900px)").matches;

@@ -1,4 +1,44 @@
+import pytest
+
 from ai_tutor.llama_backend import _normalize_question, _restructure_finetuned, _split_numbered_sections, _strip_meta
+
+
+# ---------------------------------------------------------------------------
+# Parametrized contraction expansion — one table drives all cases
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("raw,expected_fragment", [
+    ("what's a loop?",          "What is a loop?"),
+    ("how's a function defined?", "How does a function defined?"),
+    ("why's this important?",   "Why is this important?"),
+    ("where's the error?",      "Where is the error?"),
+    ("who's responsible?",      "Who is responsible?"),
+    ("it's a variable",         "It is a variable?"),
+    ("don't use globals",       "Do not use globals?"),
+    ("doesn't work",            "Does not work?"),
+    ("can't compile",           "Cannot compile?"),
+    ("isn't valid syntax",      "Is not valid syntax?"),
+])
+def test_normalize_expands_contraction(raw, expected_fragment):
+    assert _normalize_question(raw) == expected_fragment
+
+
+@pytest.mark.parametrize("raw", [
+    "what is a variable",
+    "explain loops",
+    "define a function",
+])
+def test_normalize_always_ends_with_question_mark(raw):
+    assert _normalize_question(raw).endswith("?")
+
+
+@pytest.mark.parametrize("raw", [
+    "what is a variable?",
+    "How does a loop work?",
+    "Why is indentation required?",
+])
+def test_normalize_no_double_question_mark(raw):
+    assert _normalize_question(raw).count("?") == 1
 
 
 class TestNormalizeQuestion:

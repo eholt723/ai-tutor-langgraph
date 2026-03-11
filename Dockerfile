@@ -4,13 +4,6 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# System deps for llama-cpp-python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
-    libopenblas-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements-runtime.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \

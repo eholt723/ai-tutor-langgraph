@@ -9,6 +9,4 @@ huggingface_hub>=0.23.0
 # Your config / utilities if they rely on specific libs
 python-dotenv
 
-# Llama backend — pre-built CPU wheel, no source compilation
---extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
-llama-cpp-python
+# Llama backend installed separately in Dockerfile with --prefer-binary

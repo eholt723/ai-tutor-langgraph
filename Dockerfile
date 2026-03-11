@@ -7,7 +7,8 @@ WORKDIR /app
 COPY requirements-runtime.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir --prefer-binary llama-cpp-python
 
 COPY . .
 

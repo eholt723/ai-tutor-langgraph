@@ -4,6 +4,9 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# musl libc required by the pre-built llama-cpp-python wheel (compiled against Alpine/musl)
+RUN apt-get update && apt-get install -y --no-install-recommends musl && rm -rf /var/lib/apt/lists/*
+
 COPY requirements-runtime.txt ./requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip \

@@ -50,6 +50,12 @@ models/gguf/
 *.pth
 *.gguf
 
+# Binary images — use SVG for tracked assets (HF rejects binary blobs)
+*.png
+*.jpg
+*.jpeg
+*.ico
+
 # --------------------------
 # llama.cpp (should NOT be committed)
 # --------------------------

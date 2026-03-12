@@ -14,7 +14,7 @@ class TestBaseModePrompt:
 
     def test_ends_with_answer_marker(self):
         prompt = build_prompt(QUESTION, mode="base")
-        assert prompt.strip().endswith("Answer:")
+        assert prompt.strip().endswith("A:")
 
     def test_no_inst_tags(self):
         prompt = build_prompt(QUESTION, mode="base")

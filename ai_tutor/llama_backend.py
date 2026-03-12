@@ -28,8 +28,8 @@ def get_base_model() -> Llama:
 
     return Llama(
         model_path=str(BASE_GGUF),
-        n_ctx=1024,
-        n_threads=2,
+        n_ctx=512,
+        n_threads=4,
         logits_all=False,
         use_mmap=True,
         use_mlock=False,
@@ -48,7 +48,7 @@ def get_finetuned_model() -> Llama:
         model_path=str(BASE_GGUF),
         lora_path=str(LORA_GGUF),
         n_ctx=1024,
-        n_threads=2,
+        n_threads=4,
         logits_all=False,
         use_mmap=True,
         use_mlock=False,
@@ -293,10 +293,10 @@ def generate_answer(
 
     output = model(
         base_prompt,
-        max_tokens=max_tokens,
-        temperature=0.7,
+        max_tokens=256,
+        temperature=0.8,
         top_p=0.9,
-        repeat_penalty=1.1,
+        repeat_penalty=1.0,
         stop=["</s>"],
     )
 

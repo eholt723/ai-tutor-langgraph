@@ -71,26 +71,12 @@ Student question:
 Write your answer now. [/INST]"""
         return prompt
 
-    # -------- BASE MODEL PROMPT (simple completion) --------
-    system = dedent(
-        """
-        You are a helpful programming assistant.
-        Answer clearly and concisely in a way a beginner can understand.
-        """
-    ).strip()
+    # -------- BASE MODEL PROMPT (raw completion — no system guidance) --------
+    # Intentionally minimal: no system prompt, no chat template.
+    # TinyLlama without guidance wanders and repeats — that contrast is the demo.
+    ctx_block = f"\n\nContext:\n{context}" if context else ""
 
-    ctx_block = (
-        f"\n\nExtra reference notes (optional, may be empty):\n{context}"
-        if context
-        else ""
-    )
-
-    # Simple, non-chat prompt for better base completions
-    prompt = f"""{system}
-
-Question:
-{question}{ctx_block}
-
-Answer:"""
+    prompt = f"""Q: {question}{ctx_block}
+A:"""
 
     return prompt

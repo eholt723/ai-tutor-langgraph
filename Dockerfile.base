@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1
+ENV CMAKE_ARGS="-DGGML_BLAS=OFF -DGGML_CUDA=OFF -DGGML_METAL=OFF \
+    -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_AVX512=OFF \
+    -DGGML_F16C=OFF -DGGML_FMA=OFF"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ cmake make \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir \
+        fastapi \
+        "uvicorn[standard]" \
+        "pydantic>=2" \
+        numpy \
+        "huggingface_hub>=0.23.0" \
+        python-dotenv \
+        llama-cpp-python
